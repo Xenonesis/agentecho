@@ -244,7 +244,15 @@ This project is source-available but not open-source software.
 [Read full license text](LICENSE.md)
 
 > **Why this license?**
-> AgentEcho is free to build and use for developers who want to compile from source. Purchasing from the Chrome Web Store for $1 supports continued development, covers hosting costs, and provides an easy, pre-built installation option. Think of it as a "buy me a coffee" model for convenience.
+> AgentEcho is free to build and use for developers who want to compile from source. Purchasing from the Chrome Web Store for $2 supports continued development, covers hosting costs, and provides an easy, pre-built installation option. Think of it as a "buy me a coffee" model for convenience.
+
+---
+
+## Known Limitations
+
+- Cannot inject into cross-origin iframes (browser security)
+- Framework detection may fail on production/minified builds
+- Selectors may break if DOM structure changes significantly between sessions
 
 ---
 

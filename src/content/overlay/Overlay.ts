@@ -336,4 +336,8 @@ export class Overlay {
       }
     }
   }
+
+  updateFeedbackManager(feedbackManager: FeedbackManager) {
+    this.feedbackManager = feedbackManager;
+  }
 }

@@ -4,6 +4,7 @@ import { getSettings, getFeedback } from '../shared/storage';
 
 let overlay: Overlay | null = null;
 let feedbackManager: FeedbackManager | null = null;
+let currentUrl: string = window.location.href;
 
 async function initializeOverlay() {
   if (overlay) return;
@@ -11,7 +12,8 @@ async function initializeOverlay() {
   const settings = await getSettings();
   const feedback = await getFeedback(window.location.href);
 
-  feedbackManager = new FeedbackManager(window.location.href, feedback);
+  currentUrl = window.location.href;
+  feedbackManager = new FeedbackManager(currentUrl, feedback);
   overlay = new Overlay(settings, feedbackManager);
   overlay.activate();
 }
@@ -26,6 +28,62 @@ function deactivateOverlay() {
     overlay = null;
   }
   feedbackManager = null;
+}
+
+async function handleUrlChange() {
+  // Wait for the URL to actually update
+  await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
+
+  const newUrl = window.location.href;
+
+  // Only reload if URL actually changed and overlay exists
+  if (newUrl !== currentUrl && overlay) {
+    currentUrl = newUrl;
+
+    // Clear old markers and feedback
+    overlay.clearAllMarkers();
+
+    // Load feedback for new URL
+    const feedback = await getFeedback(newUrl);
+    feedbackManager = new FeedbackManager(newUrl, feedback);
+
+    // Update overlay with new feedback manager
+    overlay.updateFeedbackManager(feedbackManager);
+
+    // Load existing markers for new URL
+    overlay.loadExistingMarkers();
+  }
+}
+
+function setupUrlMonitoring() {
+  let lastCheckedUrl = window.location.href;
+
+  // Use requestAnimationFrame for efficient URL checking
+  function checkUrl() {
+    const currentUrl = window.location.href;
+
+    if (currentUrl !== lastCheckedUrl && overlay) {
+      lastCheckedUrl = currentUrl;
+      handleUrlChange();
+    }
+
+    // Continue checking
+    requestAnimationFrame(checkUrl);
+  }
+
+  // Start the rAF loop
+  requestAnimationFrame(checkUrl);
+
+  // Also listen to standard events as backup
+  window.addEventListener('popstate', () => {
+    lastCheckedUrl = window.location.href;
+    handleUrlChange();
+  });
+
+  window.addEventListener('hashchange', () => {
+    lastCheckedUrl = window.location.href;
+    handleUrlChange();
+  });
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -111,3 +169,6 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
+
+// Setup URL monitoring for SPA navigation detection
+setupUrlMonitoring();
