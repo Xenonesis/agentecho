@@ -3,6 +3,16 @@
   "version": "1.0.0",
   "description": "Visual feedback annotation tool for developers to place markers on DOM elements and generate AI-optimized Markdown",
   "type": "module",
+  "license": "Polyform-Noncommercial-1.0.0",
+  "author": "Areshk",
+  "homepage": "https://github.com/Areshkew/agentecho#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Areshkew/agentecho.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Areshkew/agentecho/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

@@ -3,6 +3,12 @@
   "name": "AgentEcho",
   "version": "1.0.0",
   "description": "Visual feedback annotation tool for developers",
+  "icons": {
+    "16": "assets/logo.jpg",
+    "32": "assets/logo.jpg",
+    "48": "assets/logo.jpg",
+    "128": "assets/logo.jpg"
+  },
   "permissions": [
     "storage",
     "activeTab"
@@ -26,6 +32,12 @@
     }
   ],
   "action": {
-    "default_popup": "src/popup/index.html"
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "assets/logo.jpg",
+      "32": "assets/logo.jpg",
+      "48": "assets/logo.jpg",
+      "128": "assets/logo.jpg"
+    }
   }
 }
