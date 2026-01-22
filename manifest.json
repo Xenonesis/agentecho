@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "description": "Visual feedback annotation tool for developers",
   "icons": {
-    "16": "assets/logo.jpg",
-    "32": "assets/logo.jpg",
-    "48": "assets/logo.jpg",
-    "128": "assets/logo.jpg"
+    "16": "assets/icon16.jpeg",
+    "32": "assets/icon32.jpeg",
+    "48": "assets/icon48.jpeg",
+    "128": "assets/icon128.jpeg"
   },
   "permissions": [
     "storage",
@@ -34,10 +34,10 @@
   "action": {
     "default_popup": "src/popup/index.html",
     "default_icon": {
-      "16": "assets/logo.jpg",
-      "32": "assets/logo.jpg",
-      "48": "assets/logo.jpg",
-      "128": "assets/logo.jpg"
+      "16": "assets/icon16.jpeg",
+      "32": "assets/icon32.jpeg",
+      "48": "assets/icon48.jpeg",
+      "128": "assets/icon128.jpeg"
     }
   }
 }
