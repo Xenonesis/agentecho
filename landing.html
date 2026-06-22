@@ -1,0 +1,2375 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AgentEcho — point at what's broken, hand off the Markdown</title>
+<meta name="description" content="A Chrome extension that drops numbered markers on any page element and exports an AI-ready Markdown feedback report." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* ---------- tokens ---------- */
+:root {
+  --bg: #FAFAF9;
+  --bg-elev: #FFFFFF;
+  --ink: #0A0A0A;
+  --ink-mid: #404040;
+  --muted: #737373;
+  --line: #E7E5E4;
+  --line-strong: #D6D3D1;
+  --accent: #4338CA;
+  --accent-soft: #EEF2FF;
+  --marker: #E11D48;
+  --marker-soft: #FEE2E2;
+  --code-bg: #0A0A0A;
+  --code-ink: #E7E5E4;
+  --code-muted: #A8A29E;
+  --code-accent: #A5B4FC;
+  --code-green: #86EFAC;
+  --code-yellow: #FCD34D;
+  --code-red: #FCA5A5;
+  --shadow-marker: 0 4px 12px rgba(225, 29, 72, 0.35);
+  --shadow-card: 0 1px 0 var(--line);
+  --max: 1040px;
+}
+
+[data-theme="dark"] {
+  --bg: #0A0A0A;
+  --bg-elev: #171717;
+  --ink: #FAFAF9;
+  --ink-mid: #D6D3D1;
+  --muted: #A8A29E;
+  --line: #262626;
+  --line-strong: #404040;
+  --accent: #A5B4FC;
+  --accent-soft: #1E1B4B;
+  --marker: #FB7185;
+  --marker-soft: #4C0519;
+  --code-bg: #050505;
+  --code-ink: #E7E5E4;
+  --code-muted: #78716C;
+  --code-accent: #A5B4FC;
+  --code-green: #86EFAC;
+  --code-yellow: #FCD34D;
+  --code-red: #FCA5A5;
+  --shadow-marker: 0 4px 12px rgba(251, 113, 133, 0.4);
+}
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: transparent;
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: color 240ms ease;
+  position: relative;
+  min-height: 100vh;
+}
+
+#starfield {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+
+.topbar, .wrap, section, footer { position: relative; z-index: 1; }
+
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- topbar ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+  backdrop-filter: saturate(180%) blur(8px);
+  -webkit-backdrop-filter: saturate(180%) blur(8px);
+}
+.topbar-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  gap: 16px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.brand-dot {
+  width: 8px; height: 8px;
+  background: var(--marker);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--marker-soft);
+}
+.topbar-meta { color: var(--muted); }
+.topbar-meta span { color: var(--ink); }
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+.topbar-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.topbar-link:hover { color: var(--ink); text-decoration: none; }
+
+/* repo badge */
+.repo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 8px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-mid);
+  transition: border-color 160ms ease;
+}
+.repo-badge:hover { border-color: var(--ink); text-decoration: none; }
+.repo-badge svg { width: 13px; height: 13px; flex-shrink: 0; }
+.repo-badge .repo-name { color: var(--ink); font-weight: 500; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.repo-badge .repo-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+  font-weight: 500;
+}
+.repo-badge .repo-stars.loading { opacity: 0.4; }
+
+.theme-toggle {
+  width: 32px; height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+.theme-toggle:hover { border-color: var(--ink); }
+.theme-toggle svg { width: 14px; height: 14px; }
+[data-theme="dark"] .icon-sun { display: block; }
+[data-theme="dark"] .icon-moon { display: none; }
+[data-theme="light"] .icon-sun { display: none; }
+[data-theme="light"] .icon-moon { display: block; }
+
+/* ---------- layout ---------- */
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 32px; }
+
+section { padding: 96px 0; border-bottom: 1px solid var(--line); }
+section:last-of-type { border-bottom: 0; }
+
+/* ---------- typography ---------- */
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  display: inline-block;
+}
+h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(36px, 5.5vw, 56px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+h1 em { font-style: normal; color: var(--marker); }
+h2 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.lede {
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--ink-mid);
+  max-width: 680px;
+  margin-bottom: 48px;
+}
+
+/* ---------- hero ---------- */
+.hero { padding: 80px 0 96px; }
+.hero h1 { max-width: 880px; }
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+.btn:hover { text-decoration: none; transform: translateY(-1px); }
+.btn-primary { background: var(--ink); color: var(--bg); }
+.btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+.btn-ghost { background: transparent; color: var(--ink); }
+.btn-ghost:hover { background: var(--bg-elev); }
+
+/* ---------- shared marker dot ---------- */
+.marker {
+  position: absolute;
+  width: 28px; height: 28px;
+  background: var(--marker);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: var(--shadow-marker);
+  user-select: none;
+  z-index: 10;
+}
+
+/* ---------- hero scene ---------- */
+.hero-scene {
+  margin-top: 56px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  overflow: hidden;
+  position: relative;
+}
+.hero-chrome {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.hero-chrome-dots { display: flex; gap: 6px; }
+.hero-chrome-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.hero-chrome-url {
+  flex: 1;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hero-chrome-live {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--marker);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.hero-chrome-live::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--marker);
+  animation: livePulse 1.6s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.hero-page {
+  padding: 28px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-height: 420px;
+  position: relative;
+}
+
+.hero-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+}
+.hero-logo { color: var(--ink); font-weight: 700; letter-spacing: -0.01em; }
+.hero-page-header nav { display: flex; gap: 16px; align-items: center; }
+.hero-page-nav-cta { color: var(--ink); }
+
+.hero-block { padding: 4px 0; }
+.hero-block h1 {
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.hero-block .hero-sub {
+  font-size: 14px;
+  color: var(--ink-mid);
+  max-width: 480px;
+}
+
+.hero-pricing {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.hero-plan {
+  position: relative;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+}
+.hero-plan.popular { border-color: var(--accent); }
+.hero-plan-badge {
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  background: var(--accent);
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+.hero-plan h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 500;
+}
+.hero-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.hero-price span { font-size: 12px; color: var(--muted); font-weight: 400; }
+.hero-plan ul {
+  list-style: none;
+  font-size: 12px;
+  color: var(--ink-mid);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0;
+}
+.hero-plan ul li::before { content: '· '; color: var(--accent); font-weight: 700; }
+.hero-plan-cta {
+  margin-top: auto;
+  padding: 8px 12px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  cursor: pointer;
+}
+
+.hero-testimonial {
+  border-left: 2px solid var(--accent);
+  padding: 8px 16px;
+  font-size: 14px;
+  color: var(--ink-mid);
+  font-style: italic;
+  position: relative;
+}
+.hero-testimonial cite {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-style: normal;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.hero-page-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-family: 'JetBrains Mono', monospace;
+}
+.hero-footer-cta {
+  padding: 6px 12px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+/* interactive targets */
+.hero-target {
+  position: relative;
+  cursor: pointer;
+  transition: outline-color 140ms ease;
+  outline: 2px solid transparent;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+.hero-target:hover,
+.hero-target.hovering {
+  outline-color: var(--accent);
+}
+.hero-target:hover .hero-tooltip,
+.hero-target.hovering .hero-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+.hero-target.hero-marked {
+  outline-color: var(--marker);
+}
+
+.hero-tooltip {
+  position: absolute;
+  top: -28px;
+  left: 0;
+  background: var(--accent);
+  color: white;
+  padding: 3px 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+  pointer-events: none;
+  z-index: 5;
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hero-tooltip.cta { background: var(--ink); }
+
+.hero-marker-slot {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  z-index: 4;
+}
+.hero-marker-slot .marker {
+  position: absolute;
+  inset: 0;
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+  animation: heroMarkerIn 320ms cubic-bezier(.2,.9,.3,1.4);
+}
+@keyframes heroMarkerIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.hero-note {
+  position: absolute;
+  top: -14px;
+  right: -8px;
+  background: var(--marker);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 10px;
+  max-width: 240px;
+  line-height: 1.35;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);
+  pointer-events: none;
+  z-index: 6;
+  animation: heroNoteIn 320ms cubic-bezier(.2,.9,.3,1.4);
+  text-align: left;
+}
+.hero-note::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 14px;
+  width: 8px;
+  height: 8px;
+  background: var(--marker);
+  transform: rotate(45deg);
+}
+@keyframes heroNoteIn {
+  0% { opacity: 0; transform: translateY(-6px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pop {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.marker-3 { animation-name: pop-rise; }
+@keyframes pop-rise {
+  0% { transform: translateX(-50%) scale(0); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+/* ---------- try-it demo ---------- */
+.tryit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+}
+.tryit-pane {
+  background: var(--bg-elev);
+  display: flex;
+  flex-direction: column;
+  min-height: 480px;
+}
+.tryit-page { border-right: 1px solid var(--line); }
+
+.tryit-chrome {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.tryit-dots { display: flex; gap: 6px; }
+.tryit-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.tryit-url {
+  flex: 1;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  text-align: center;
+}
+
+.tryit-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+.tryit-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+.tryit-header p {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.tryit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.tryit-target {
+  position: relative;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  padding: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  transition: border-color 140ms ease, transform 100ms ease, background 140ms ease;
+}
+.tryit-target:hover:not(.tryit-disabled):not(.tryit-marked) {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent-soft);
+  outline-offset: -1px;
+}
+.tryit-target.tryit-marked {
+  border-color: var(--marker);
+  cursor: default;
+}
+.tryit-target.tryit-marked::after {
+  content: "captured";
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--marker);
+}
+
+.tryit-marker-slot {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+.tryit-marker-slot .marker {
+  position: absolute;
+  inset: 0;
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  animation: tryitPop 280ms cubic-bezier(.2,.9,.3,1.4);
+}
+@keyframes tryitPop {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.tryit-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tryit-metric .tryit-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: 'JetBrains Mono', monospace;
+}
+.tryit-metric .tryit-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.02em;
+}
+.tryit-metric .tryit-trend {
+  font-size: 11px;
+  color: #16a34a;
+  font-family: 'JetBrains Mono', monospace;
+}
+.tryit-metric .tryit-trend.down { color: var(--marker); }
+
+.tryit-cta {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+  padding: 12px 18px;
+  font-weight: 500;
+  font-size: 14px;
+  align-self: flex-start;
+}
+.tryit-cta:hover:not(.tryit-disabled):not(.tryit-marked) {
+  background: var(--accent);
+  border-color: var(--accent);
+  outline: 2px solid var(--accent-soft);
+}
+
+.tryit-section {
+  padding: 16px;
+}
+.tryit-section h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: 'JetBrains Mono', monospace;
+}
+.tryit-section ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tryit-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--ink-mid);
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: inherit;
+  width: 100%;
+}
+.tryit-row .tryit-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+.tryit-row.tryit-disabled { cursor: default; opacity: 0.6; }
+
+/* output pane */
+.tryit-output-pane { background: var(--code-bg); color: var(--code-ink); }
+.tryit-out-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #1f1f1f;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--code-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.tryit-out-meta span { color: var(--code-ink); }
+.tryit-out-actions { display: flex; gap: 6px; }
+.tryit-out-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border: 1px solid #2a2a2a;
+  background: transparent;
+  color: var(--code-ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.tryit-out-btn:hover { border-color: var(--code-accent); color: var(--code-accent); }
+.tryit-out-btn.primary { background: var(--code-accent); color: var(--code-bg); border-color: var(--code-accent); }
+.tryit-out-btn.primary:hover { background: #C7D2FE; border-color: #C7D2FE; }
+.tryit-out-btn.copied { background: var(--code-green); color: var(--code-bg); border-color: var(--code-green); }
+
+.tryit-out {
+  flex: 1;
+  margin: 0;
+  padding: 18px;
+  overflow: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.tryit-out-empty {
+  color: var(--code-muted);
+  font-style: italic;
+}
+.t-title { color: #E7E5E4; font-weight: 700; }
+.t-meta { color: var(--code-muted); }
+.t-q { color: var(--code-red); }
+.t-k { color: var(--code-accent); }
+.t-v { color: var(--code-green); }
+.t-h { color: var(--code-yellow); }
+.t-c { color: var(--code-muted); }
+.t-comp { color: #F0ABFC; }
+.code-wrap {
+  background: var(--code-bg);
+  color: var(--code-ink);
+  overflow: hidden;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid #1f1f1f;
+  font-size: 11px;
+  color: var(--code-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.code-head .dots { display: flex; gap: 6px; }
+.code-head .dot { width: 10px; height: 10px; border-radius: 50%; background: #2a2a2a; }
+.code-head .dot.r { background: #5c2a2a; }
+.code-head .dot.y { background: #5c502a; }
+.code-head .dot.g { background: #2a4a2a; }
+.code-body { padding: 24px; overflow-x: auto; }
+.code-body pre { white-space: pre; }
+.tok-title { color: #E7E5E4; font-weight: 700; }
+.tok-meta { color: var(--code-muted); }
+.tok-q { color: var(--code-red); }
+.tok-k { color: var(--code-accent); }
+.tok-v { color: var(--code-green); }
+.tok-h { color: var(--code-yellow); }
+.tok-c { color: var(--code-muted); font-style: italic; }
+
+/* ---------- steps ---------- */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  margin-top: 32px;
+}
+.step {
+  background: var(--bg);
+  padding: 32px 28px;
+}
+.step-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.step p { font-size: 14px; color: var(--ink-mid); line-height: 1.55; }
+
+/* ---------- install ---------- */
+.setup {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 48px;
+  align-items: start;
+}
+.setup ol {
+  list-style: none;
+  counter-reset: step;
+  border-top: 1px solid var(--line);
+}
+.setup li {
+  counter-increment: step;
+  padding: 20px 0 20px 56px;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  font-size: 15px;
+  color: var(--ink-mid);
+}
+.setup li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.setup li strong { color: var(--ink); font-weight: 600; display: block; margin-bottom: 6px; font-size: 15px; }
+.setup li code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  padding: 2px 6px;
+  color: var(--ink);
+  cursor: text;
+  user-select: all;
+}
+.note {
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  padding: 20px 24px;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--ink-mid);
+}
+.note strong { color: var(--ink); }
+.note code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 2px 6px;
+  color: var(--ink);
+}
+
+/* ---------- shortcuts ---------- */
+.shortcuts {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+}
+.shortcut-row {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+  font-size: 14px;
+}
+.shortcut-row .keys { display: flex; gap: 6px; flex-wrap: wrap; }
+.shortcut-row .desc { color: var(--ink-mid); }
+
+.kbd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-elev);
+  color: var(--ink);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 var(--line-strong);
+  white-space: nowrap;
+}
+
+/* ---------- capture list ---------- */
+.capture {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border: 1px solid var(--line);
+  margin-top: 24px;
+}
+.capture li {
+  list-style: none;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  font-size: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+.capture li:nth-child(2n) { border-right: 0; }
+.capture li:nth-last-child(-n+2) { border-bottom: 0; }
+.capture li::before {
+  content: "→";
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+.capture li code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--ink-mid);
+}
+
+/* ---------- settings ---------- */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+.setting-card {
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  padding: 20px;
+}
+.setting-card .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.setting-card .name {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.setting-card .desc {
+  font-size: 13px;
+  color: var(--ink-mid);
+  line-height: 1.5;
+}
+
+/* ---------- architecture ---------- */
+.arch {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+.arch-card {
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  padding: 24px;
+}
+.arch-card .role {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.arch-card h4 {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.arch-card .path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.arch-card p {
+  font-size: 14px;
+  color: var(--ink-mid);
+  line-height: 1.55;
+}
+
+/* ---------- why-markdown (compare) ---------- */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+.compare-col {
+  border: 1px solid var(--line);
+  padding: 28px;
+  background: var(--bg-elev);
+}
+.compare-col.bad { background: var(--bg); }
+.compare-col h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.compare-col.bad h4 { color: var(--muted); }
+.compare-col.good h4 { color: var(--ink); }
+.compare-col ul { list-style: none; }
+.compare-col li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  color: var(--ink-mid);
+  display: flex;
+  gap: 10px;
+}
+.compare-col li:last-child { border-bottom: 0; }
+.compare-col .x { color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.compare-col .check { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+
+/* ---------- privacy ---------- */
+.privacy {
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  padding: 32px;
+  margin-top: 24px;
+}
+.privacy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+.privacy-item {
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.privacy-item .k {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.privacy-item .v {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+/* ---------- faq ---------- */
+.faq {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+}
+.faq details {
+  border-bottom: 1px solid var(--line);
+  padding: 20px 0;
+}
+.faq summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after {
+  content: "+";
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--muted);
+  transition: transform 160ms ease;
+}
+.faq details[open] summary::after { content: "−"; }
+.faq p {
+  margin-top: 12px;
+  font-size: 15px;
+  color: var(--ink-mid);
+  max-width: 720px;
+  line-height: 1.6;
+}
+.faq p code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  padding: 1px 5px;
+}
+
+/* ---------- license ---------- */
+.license {
+  border: 1px solid var(--line);
+  padding: 32px;
+  background: var(--bg-elev);
+  margin-top: 24px;
+}
+.license p { font-size: 14px; color: var(--ink-mid); margin-bottom: 12px; }
+.license p:last-child { margin-bottom: 0; }
+
+/* ---------- footer ---------- */
+footer {
+  padding: 48px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+footer .row {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+footer a:hover { color: var(--ink); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1024px) {
+  .steps, .settings-grid, .arch, .compare, .privacy-grid { gap: 12px; }
+  .step, .setting-card, .arch-card { padding: 24px 22px; }
+  .hero-scene { margin-top: 40px; }
+}
+
+@media (max-width: 760px) {
+  section { padding: 64px 0; }
+  .steps { grid-template-columns: 1fr; }
+  .setup { grid-template-columns: 1fr; gap: 24px; }
+  .capture { grid-template-columns: 1fr; }
+  .capture li { border-right: 0; }
+  .capture li:last-child { border-bottom: 0; }
+  .shortcut-row { grid-template-columns: 1fr; gap: 8px; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .arch { grid-template-columns: 1fr; }
+  .compare { grid-template-columns: 1fr; }
+  .privacy-grid { grid-template-columns: 1fr; }
+  .tryit { grid-template-columns: 1fr; }
+  .tryit-page { border-right: 0; border-bottom: 1px solid var(--line); }
+  .tryit-pane { min-height: 0; }
+  .tryit-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tryit-metric .tryit-value { font-size: 18px; }
+  .tryit-out { padding: 14px; font-size: 11px; }
+  .hero-pricing { grid-template-columns: 1fr; }
+  .hero-page { padding: 20px; gap: 18px; min-height: 0; }
+  .hero-chrome-live { display: none; }
+  .hero-page-header nav { gap: 10px; }
+  .hero-page-header nav span:nth-child(3) { display: none; }
+  .hero-page-footer { flex-direction: column; gap: 10px; align-items: stretch; }
+  .hero-note { font-size: 10px; max-width: 160px; }
+  .topbar-meta { display: none; }
+  .topbar-inner, footer .row, .wrap { padding-left: 20px; padding-right: 20px; }
+  .license, .privacy { padding: 24px; }
+  .repo-badge .repo-name { display: none; }
+  .hero { padding: 56px 0 64px; }
+  h1 { font-size: clamp(28px, 8vw, 40px); }
+  .lede { font-size: 17px; }
+  .hero-actions .btn { flex: 1 1 auto; justify-content: center; }
+  .code-head { padding: 12px 14px; font-size: 10px; }
+  .code-body { padding: 18px; }
+}
+
+@media (max-width: 480px) {
+  section { padding: 52px 0; }
+  .topbar-inner { padding: 12px 16px; gap: 8px; }
+  .topbar-inner, footer .row, .wrap { padding-left: 16px; padding-right: 16px; }
+  .brand { font-size: 11px; gap: 8px; }
+  .brand-dot { width: 7px; height: 7px; box-shadow: 0 0 0 2px var(--marker-soft); }
+  .eyebrow { font-size: 11px; margin-bottom: 18px; }
+  h1 { font-size: clamp(26px, 8.5vw, 34px); line-height: 1.1; }
+  h2 { font-size: 20px; }
+  .lede { font-size: 16px; margin-bottom: 32px; }
+  .hero { padding: 40px 0 52px; }
+  .hero-actions { flex-direction: column; }
+  .hero-actions .btn { width: 100%; }
+  .hero-scene { margin-top: 32px; }
+  .hero-page { padding: 16px; gap: 16px; }
+  .hero-pricing { gap: 8px; }
+  .hero-plan { padding: 14px; }
+  .hero-price { font-size: 20px; }
+  .hero-block h1 { font-size: 20px; }
+  .hero-block .hero-sub { font-size: 13px; }
+  .hero-testimonial { font-size: 13px; padding: 6px 12px; }
+  .hero-tooltip { display: none; }
+  .hero-note { top: -10px; right: -6px; font-size: 10px; padding: 4px 8px; max-width: 140px; }
+  .step, .setting-card, .arch-card, .compare-col { padding: 20px 18px; }
+  .setup li { padding: 18px 0 18px 44px; font-size: 14px; }
+  .setup li::before { top: 18px; }
+  .setup li code { font-size: 11px; word-break: break-all; }
+  .note { padding: 16px 18px; font-size: 13px; }
+  .license, .privacy { padding: 20px; }
+  .privacy-grid { gap: 10px; }
+  .faq summary { font-size: 15px; }
+  .faq p { font-size: 14px; }
+  footer { padding: 36px 0; }
+  footer .row { justify-content: center; text-align: center; }
+  .marker { width: 24px; height: 24px; font-size: 12px; }
+  .marker-1, .marker-2 { top: -12px; }
+  .marker-1 { left: -12px; }
+  .marker-2 { right: -12px; }
+  .marker-3 { bottom: -12px; }
+  .kbd { font-size: 11px; padding: 2px 6px; }
+}
+
+@media (max-width: 380px) {
+  .topbar-inner { padding: 10px 12px; }
+  .topbar-inner, footer .row, .wrap { padding-left: 14px; padding-right: 14px; }
+  .repo-badge { padding: 4px 7px; }
+  .repo-badge svg { width: 12px; height: 12px; }
+  .repo-badge .repo-stars { padding-left: 6px; font-size: 10px; }
+  .theme-toggle { width: 28px; height: 28px; }
+  .theme-toggle svg { width: 12px; height: 12px; }
+  h1 { font-size: 26px; }
+  h2 { font-size: 18px; }
+  .lede { font-size: 15px; }
+  .btn { padding: 10px 16px; font-size: 12px; }
+  .hero-block h1 { font-size: 18px; }
+  .hero-block .hero-sub { font-size: 12px; }
+  .hero-plan h4 { font-size: 10px; }
+  .hero-price { font-size: 18px; }
+  .hero-plan ul { font-size: 11px; }
+  .hero-testimonial { font-size: 12px; }
+  .step-label, .eyebrow { font-size: 10px; }
+  .shortcut-row { padding: 14px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marker { animation: none !important; }
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="starfield" aria-hidden="true"></canvas>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="brand-dot"></span> AgentEcho</div>
+    <div class="topbar-meta">v1.0.0 &nbsp;·&nbsp; <span>Chrome MV3</span> &nbsp;·&nbsp; TypeScript</div>
+    <div class="topbar-actions">
+      <a class="repo-badge" id="repoBadge" href="https://github.com/Xenonesis/agentecho" target="_blank" rel="noopener" aria-label="View repository on GitHub">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span class="repo-name">Xenonesis/agentecho</span>
+        <span class="repo-stars" id="repoStars" title="GitHub stars">★ 0</span>
+      </a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">// for developers talking to AI</span>
+    <h1>Point at what's broken.<br/>Hand off the <em>Markdown</em>.</h1>
+    <p class="lede">
+      AgentEcho drops numbered markers on any page element and copies an AI-ready Markdown report to your clipboard. No screenshots, no rephrasing — just the exact element, a stable selector, and your note.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#install">Install from source →</a>
+      <a class="btn btn-ghost" href="https://github.com/Xenonesis/agentecho" target="_blank" rel="noopener">View on GitHub</a>
+      <a class="btn btn-ghost" href="https://chromewebstore.google.com/detail/fdkdjnebmcmlhnbecbfefebpdhihdjjb" target="_blank" rel="noopener">Chrome Store ↗</a>
+    </div>
+
+    <div class="hero-scene" aria-label="Interactive demo of AgentEcho on a pricing page">
+      <div class="hero-chrome">
+        <div class="hero-chrome-dots"><span></span><span></span><span></span></div>
+        <div class="hero-chrome-url">acme.marketing / pricing</div>
+        <div class="hero-chrome-live">● live demo</div>
+      </div>
+      <div class="hero-page">
+        <header class="hero-page-header">
+          <span class="hero-logo">● acme</span>
+          <nav><span>Features</span><span>Pricing</span><span>Docs</span><span class="hero-page-nav-cta">Sign in</span></nav>
+        </header>
+
+        <div class="hero-block">
+          <div class="hero-target" data-name="h1" data-tag="h1" data-selector="main &gt; section.hero &gt; h1">
+            <div class="hero-marker-slot"></div>
+            <div class="hero-tooltip">&lt;h1&gt; · main &gt; section.hero &gt; h1</div>
+            <h1>Pricing that scales with you</h1>
+            <p class="hero-sub">Simple plans for teams of every size. Cancel anytime.</p>
+          </div>
+        </div>
+
+        <div class="hero-pricing">
+          <div class="hero-target hero-plan" data-name="plan-starter" data-tag="article" data-selector="main &gt; section.pricing &gt; article:nth-of-type(1)">
+            <div class="hero-marker-slot"></div>
+            <div class="hero-tooltip">&lt;article&gt; · main &gt; section.pricing &gt; article:nth-of-type(1)</div>
+            <h4>Starter</h4>
+            <div class="hero-price">$9<span>/mo</span></div>
+            <ul><li>1 project</li><li>Email support</li><li>Community access</li></ul>
+            <div class="hero-target hero-plan-cta" data-name="cta-starter" data-tag="button" data-selector="article:nth-of-type(1) &gt; button">Get started</div>
+            <div class="hero-tooltip cta">&lt;button&gt; · article:nth-of-type(1) &gt; button</div>
+          </div>
+          <div class="hero-target hero-plan popular" data-name="plan-growth" data-tag="article" data-selector="main &gt; section.pricing &gt; article:nth-of-type(2)">
+            <div class="hero-marker-slot"></div>
+            <div class="hero-tooltip">&lt;article&gt; · main &gt; section.pricing &gt; article:nth-of-type(2)</div>
+            <span class="hero-plan-badge">Most popular</span>
+            <h4>Growth</h4>
+            <div class="hero-price">$29<span>/mo</span></div>
+            <ul><li>Unlimited projects</li><li>Priority support</li><li>Analytics dashboard</li><li>Custom domains</li></ul>
+            <div class="hero-target hero-plan-cta" data-name="cta-growth" data-tag="button" data-selector="article:nth-of-type(2) &gt; button">Get started</div>
+            <div class="hero-tooltip cta">&lt;button&gt; · article:nth-of-type(2) &gt; button</div>
+          </div>
+          <div class="hero-target hero-plan" data-name="plan-scale" data-tag="article" data-selector="main &gt; section.pricing &gt; article:nth-of-type(3)">
+            <div class="hero-marker-slot"></div>
+            <div class="hero-tooltip">&lt;article&gt; · main &gt; section.pricing &gt; article:nth-of-type(3)</div>
+            <h4>Scale</h4>
+            <div class="hero-price">$99<span>/mo</span></div>
+            <ul><li>Everything in Growth</li><li>Dedicated CSM</li><li>SSO + audit logs</li><li>99.99% SLA</li></ul>
+            <div class="hero-target hero-plan-cta" data-name="cta-scale" data-tag="button" data-selector="article:nth-of-type(3) &gt; button">Get started</div>
+            <div class="hero-tooltip cta">&lt;button&gt; · article:nth-of-type(3) &gt; button</div>
+          </div>
+        </div>
+
+        <blockquote class="hero-target hero-testimonial" data-name="testimonial" data-tag="blockquote" data-selector="section.testimonials &gt; blockquote">
+          <div class="hero-marker-slot"></div>
+          <div class="hero-tooltip">&lt;blockquote&gt; · section.testimonials &gt; blockquote</div>
+          “Saved us 12 hours a week and our churn is finally moving in the right direction.”
+          <cite>— Maria K., Head of Growth at Northwind</cite>
+        </blockquote>
+
+        <footer class="hero-page-footer">
+          <span class="hero-target" data-name="footer-link" data-tag="a" data-selector="footer &gt; a">Compare all features</span>
+          <div class="hero-tooltip">&lt;a&gt; · footer &gt; a</div>
+          <span class="hero-target hero-footer-cta" data-name="footer-cta" data-tag="button" data-selector="footer &gt; button">Talk to sales</div>
+          <div class="hero-tooltip cta">&lt;button&gt; · footer &gt; button</div>
+        </footer>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OUTPUT -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// try it</span>
+    <h2>Click anything on the left</h2>
+    <p class="lede">Five clickable elements. Each one drops a marker and appends a feedback entry to the Markdown on the right — exactly like the extension does in your browser.</p>
+
+    <div class="tryit">
+      <div class="tryit-pane tryit-page">
+        <div class="tryit-chrome">
+          <div class="tryit-dots"><span></span><span></span><span></span></div>
+          <div class="tryit-url">demo.acme.dev / dashboard</div>
+        </div>
+        <div class="tryit-body">
+          <div class="tryit-header">
+            <h3>Welcome back, Alex</h3>
+            <p>Here's what's happening today.</p>
+          </div>
+
+          <div class="tryit-grid">
+            <button type="button" class="tryit-target tryit-metric" data-name="revenue">
+              <div class="tryit-marker-slot" data-marker-for="revenue"></div>
+              <span class="tryit-label">Revenue</span>
+              <span class="tryit-value">$12,430</span>
+              <span class="tryit-trend">+8.2%</span>
+            </button>
+            <button type="button" class="tryit-target tryit-metric" data-name="users">
+              <div class="tryit-marker-slot" data-marker-for="users"></div>
+              <span class="tryit-label">Active users</span>
+              <span class="tryit-value">248</span>
+              <span class="tryit-trend down">−1.4%</span>
+            </button>
+            <button type="button" class="tryit-target tryit-metric" data-name="conversion">
+              <div class="tryit-marker-slot" data-marker-for="conversion"></div>
+              <span class="tryit-label">Conversion</span>
+              <span class="tryit-value">3.7%</span>
+              <span class="tryit-trend">+0.3%</span>
+            </button>
+          </div>
+
+          <button type="button" class="tryit-target tryit-cta" data-name="deploy">
+            <div class="tryit-marker-slot" data-marker-for="deploy"></div>
+            Deploy to production →
+          </button>
+
+          <div class="tryit-target tryit-section" data-name="activity">
+            <div class="tryit-marker-slot" data-marker-for="activity"></div>
+            <h4>Latest activity</h4>
+            <ul>
+              <li class="tryit-target tryit-row" data-name="row1"><div class="tryit-marker-slot" data-marker-for="row1"></div><span>alex@acme.dev</span><span class="tryit-time">2m ago</span></li>
+              <li class="tryit-row tryit-disabled"><span>system</span><span class="tryit-time">14m ago</span></li>
+              <li class="tryit-row tryit-disabled"><span>deploy-bot</span><span class="tryit-time">1h ago</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tryit-pane tryit-output-pane">
+        <div class="tryit-out-toolbar">
+          <span class="tryit-out-meta"><span id="tryitCount">0</span> items · <span id="tryitMode">auto</span></span>
+          <div class="tryit-out-actions">
+            <button type="button" class="tryit-out-btn" id="tryitReset">Reset</button>
+            <button type="button" class="tryit-out-btn primary" id="tryitCopy">Copy Markdown</button>
+          </div>
+        </div>
+        <pre class="tryit-out" id="tryitOut"><span class="tryit-out-empty">// click an element on the left to capture feedback</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY MARKDOWN -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// why markdown</span>
+    <h2>Screenshots are noise. Selectors are signal.</h2>
+    <p class="lede">A screenshot is what a page looks like. An element, a selector, and a note is what to change.</p>
+
+    <div class="compare">
+      <div class="compare-col bad">
+        <h4><span class="x">×</span> Screenshot annotations</h4>
+        <ul>
+          <li><span class="x">×</span> Resolution-dependent and decay on resize</li>
+          <li><span class="x">×</span> Force the model to OCR before reasoning</li>
+          <li><span class="x">×</span> Hide the exact element in DOM trees</li>
+          <li><span class="x">×</span> Larger payloads, slower context</li>
+        </ul>
+      </div>
+      <div class="compare-col good">
+        <h4><span class="check">✓</span> AgentEcho Markdown</h4>
+        <ul>
+          <li><span class="check">✓</span> Stable selectors survive refactors</li>
+          <li><span class="check">✓</span> One source of truth: the DOM</li>
+          <li><span class="check">✓</span> Tells the model which file to open</li>
+          <li><span class="check">✓</span> Tiny payload, fits in any prompt</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// how it works</span>
+    <h2>Three steps. No new vocabulary.</h2>
+    <p class="lede">Built on top of the browser you already use. No accounts, no dashboards, no syncing.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-label">01 · activate</div>
+        <h3>Click the extension icon</h3>
+        <p>Hit <strong>Activate</strong> in the popup. AgentEcho attaches to the active tab and listens for clicks.</p>
+      </div>
+      <div class="step">
+        <div class="step-label">02 · annotate</div>
+        <h3>Click elements to mark them</h3>
+        <p>A blue hover box previews your target. Click to drop a numbered marker, then write a note in the modal.</p>
+      </div>
+      <div class="step">
+        <div class="step-label">03 · copy</div>
+        <h3>Copy the Markdown</h3>
+        <p>Press <span class="kbd">C</span> or hit <strong>Copy</strong> in the toolbar. The full report is on your clipboard, formatted for AI.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// architecture</span>
+    <h2>Four small pieces, one clear boundary</h2>
+    <p class="lede">Standard MV3 layout. Content scripts run in the page; everything else runs in extension context.</p>
+
+    <div class="arch">
+      <div class="arch-card">
+        <div class="role">background</div>
+        <h4>Service worker</h4>
+        <div class="path">src/background/index.ts</div>
+        <p>Message broker between popup and content scripts. Holds the canonical active/inactive state per tab.</p>
+      </div>
+      <div class="arch-card">
+        <div class="role">content</div>
+        <h4>Content script</h4>
+        <div class="path">src/content/index.ts</div>
+        <p>Injected into every page. Runs the overlay, captures DOM context, generates Markdown. Uses a closed Shadow DOM so page styles can't leak in.</p>
+      </div>
+      <div class="arch-card">
+        <div class="role">ui</div>
+        <h4>Popup</h4>
+        <div class="path">src/popup/</div>
+        <p>Activate/deactivate toggle and settings panel (marker color, output detail, theme, clear-after-copy, block interactions).</p>
+      </div>
+      <div class="arch-card">
+        <div class="role">shared</div>
+        <h4>Types & storage</h4>
+        <div class="path">src/shared/</div>
+        <p>Shared TypeScript types, the messaging protocol, and the <code>chrome.storage</code> wrapper used by every context.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CAPTURED -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// what's captured</span>
+    <h2>Everything the model needs, nothing it doesn't</h2>
+    <p class="lede">Stable selectors, real DOM context, framework hints when available.</p>
+
+    <ul class="capture">
+      <li>Element tag and stable CSS selector</li>
+      <li>Classes, IDs, and <code>data-*</code> attributes</li>
+      <li>Visible text content</li>
+      <li>Detected framework component name (React, Angular)</li>
+      <li>Element position for accurate marker placement</li>
+      <li>Per-page feedback persistence</li>
+      <li>Selector uniqueness check (warns on collision)</li>
+      <li>Hover preview that respects Shadow DOM boundaries</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// settings</span>
+    <h2>Tune it to your workflow</h2>
+    <p class="lede">All settings live in the popup and persist per install via <code>chrome.storage.sync</code>.</p>
+
+    <div class="settings-grid">
+      <div class="setting-card">
+        <div class="label">appearance</div>
+        <div class="name">Marker color</div>
+        <div class="desc">Pick any color for the numbered badges. Default is <code>#ef4444</code>.</div>
+      </div>
+      <div class="setting-card">
+        <div class="label">output</div>
+        <div class="name">Detail level</div>
+        <div class="desc"><code>minimal</code> · <code>standard</code> · <code>comprehensive</code>. Controls how much DOM context ships in the Markdown.</div>
+      </div>
+      <div class="setting-card">
+        <div class="label">appearance</div>
+        <div class="name">Theme</div>
+        <div class="desc"><code>auto</code> follows your OS. <code>light</code> and <code>dark</code> override.</div>
+      </div>
+      <div class="setting-card">
+        <div class="label">workflow</div>
+        <div class="name">Clear after copy</div>
+        <div class="desc">Auto-remove markers once you've copied the report.</div>
+      </div>
+      <div class="setting-card">
+        <div class="label">workflow</div>
+        <div class="name">Block interactions</div>
+        <div class="desc">Freeze the page beneath the markers so clicks don't fall through to the wrong element.</div>
+      </div>
+      <div class="setting-card">
+        <div class="label">shortcuts</div>
+        <div class="name">Keyboard map</div>
+        <div class="desc">All actions have keys. See <a href="#shortcuts">shortcuts</a> below.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install">
+  <div class="wrap">
+    <span class="eyebrow">// install</span>
+    <h2>Build it in four commands</h2>
+    <p class="lede">Free, source-available. Compile locally — no store needed, no account required.</p>
+
+    <div class="setup">
+      <div>
+        <h3>Prerequisites</h3>
+        <p style="font-size: 14px; color: var(--ink-mid); margin-top: 8px;">
+          Node.js 18+ and any Chromium-based browser: Chrome, Brave, Arc, Edge, Opera.
+        </p>
+        <div class="note">
+          <strong>Dev mode with HMR:</strong> <code>npm run dev</code> — Vite watches <code>src/</code> and reloads the extension on save.
+        </div>
+      </div>
+      <ol>
+        <li>
+          <strong>Clone the repository</strong>
+          <code>git clone https://github.com/Xenonesis/agentecho.git</code>
+        </li>
+        <li>
+          <strong>Install dependencies</strong>
+          <code>cd agentecho &amp;&amp; npm install</code>
+        </li>
+        <li>
+          <strong>Build the extension</strong>
+          <code>npm run build</code> &nbsp;— outputs to <code>dist/</code> via <code>@crxjs/vite-plugin</code>
+        </li>
+        <li>
+          <strong>Load in Chrome</strong>
+          Open <code>chrome://extensions</code>, enable <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select the <code>dist/</code> folder.
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- SHORTCUTS -->
+<section id="shortcuts">
+  <div class="wrap">
+    <span class="eyebrow">// keyboard</span>
+    <h2>Stay in flow</h2>
+    <p class="lede">Every action has a key. Mouse optional after activation.</p>
+
+    <div class="shortcuts">
+      <div class="shortcut-row">
+        <div class="keys"><span class="kbd">C</span></div>
+        <div class="desc">Copy all feedback as Markdown to clipboard</div>
+      </div>
+      <div class="shortcut-row">
+        <div class="keys"><span class="kbd">H</span></div>
+        <div class="desc">Toggle marker visibility</div>
+      </div>
+      <div class="shortcut-row">
+        <div class="keys"><span class="kbd">Delete</span> <span class="kbd">Backspace</span></div>
+        <div class="desc">Clear all markers on the current page</div>
+      </div>
+      <div class="shortcut-row">
+        <div class="keys"><span class="kbd">Esc</span></div>
+        <div class="desc">Exit annotation mode for this tab</div>
+      </div>
+      <div class="shortcut-row">
+        <div class="keys"><span class="kbd">Ctrl</span> <span class="kbd">Shift</span> <span class="kbd">A</span></div>
+        <div class="desc">Exit annotation mode globally</div>
+      </div>
+      <div class="shortcut-row">
+        <div class="keys"><span class="kbd">Pause</span></div>
+        <div class="desc">Toggle hover preview without losing markers</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// privacy</span>
+    <h2>Your pages stay on your machine</h2>
+    <p class="lede">AgentEcho runs entirely in your browser. No accounts, no telemetry, no remote endpoints.</p>
+
+    <div class="privacy">
+      <p style="color: var(--ink); font-size: 15px;"><strong>The extension makes zero network requests of its own.</strong> Marker data and settings live in <code>chrome.storage</code> and never leave your machine unless you paste them somewhere yourself.</p>
+      <div class="privacy-grid">
+        <div class="privacy-item"><div class="k">stored locally</div><div class="v">Markers, settings, tab state</div></div>
+        <div class="privacy-item"><div class="k">host permission</div><div class="v"><code>&lt;all_urls&gt;</code> — required to inject content scripts</div></div>
+        <div class="privacy-item"><div class="k">data sent off-device</div><div class="v">Nothing, unless you paste the Markdown</div></div>
+        <div class="privacy-item"><div class="k">telemetry</div><div class="v">None. No analytics, no tracking pixels.</div></div>
+        <div class="privacy-item"><div class="k">open source</div><div class="v">Every line auditable on GitHub</div></div>
+        <div class="privacy-item"><div class="k">iframe limitation</div><div class="v">Cannot inject into cross-origin iframes (browser security)</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// questions</span>
+    <h2>Quick answers</h2>
+
+    <div class="faq">
+      <details>
+        <summary>Does it work on any site?</summary>
+        <p>Yes — once activated, AgentEcho runs on every page you visit. The content script is injected at <code>document_idle</code> so it never slows page load.</p>
+      </details>
+      <details>
+        <summary>Will it break the page it's annotating?</summary>
+        <p>No. The overlay UI lives inside a closed Shadow DOM, so page styles can't bleed in and AgentEcho's styles can't bleed out.</p>
+      </details>
+      <details>
+        <summary>How accurate is the selector?</summary>
+        <p>Selectors are generated from element attributes and structural position. They're stable across small refactors and unique enough to be useful in most codebases. For minified production builds, the detector falls back to nth-of-type paths and warns you in the Markdown.</p>
+      </details>
+      <details>
+        <summary>What frameworks does component detection cover?</summary>
+        <p>React (via fiber inspection) and Angular (via debug properties). Vue and Svelte are on the roadmap. Without detection, the <code>Component</code> field is simply omitted from the report.</p>
+      </details>
+      <details>
+        <summary>Why the Polyform Noncommercial license?</summary>
+        <p>The source is free to read, build, and modify for any non-commercial use. It restricts reselling the extension or bundling it in commercial products. The Chrome Web Store listing is a $2 convenience to support ongoing work.</p>
+      </details>
+      <details>
+        <summary>How do I update after a pull?</summary>
+        <p><code>git pull &amp;&amp; npm install &amp;&amp; npm run build</code>, then click the reload icon on the extension card in <code>chrome://extensions</code>.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- LICENSE -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// license</span>
+    <h2>Source-available, free for developers</h2>
+    <div class="license">
+      <p><strong style="color: var(--ink);">Polyform Noncommercial 1.0.0.</strong> Use it personally, fork it, modify it, build it from source — for free, forever.</p>
+      <p>The Chrome Web Store listing is a convenience: it supports continued development and saves you the four commands above. The source will always be free.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="row">
+    <div>AgentEcho · built with care for developers who care about details</div>
+    <div>
+      <a href="https://github.com/Xenonesis/agentecho" target="_blank" rel="noopener">GitHub</a>
+      &nbsp;·&nbsp;
+      <a href="https://chromewebstore.google.com/detail/fdkdjnebmcmlhnbecbfefebpdhihdjjb" target="_blank" rel="noopener">Chrome Store</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  // ---------- theme ----------
+  const root = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+  const KEY = 'agentecho-theme';
+
+  const system = () => matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  const saved = localStorage.getItem(KEY);
+  root.setAttribute('data-theme', saved || system());
+
+  btn.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem(KEY, next);
+  });
+
+  // follow OS only if user never picked one
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if (!localStorage.getItem(KEY)) {
+      root.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+    }
+  });
+
+  // ---------- select <code> on click ----------
+  document.querySelectorAll('code').forEach(c => {
+    c.addEventListener('click', () => {
+      const r = document.createRange();
+      r.selectNodeContents(c);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+    });
+  });
+
+  // ---------- hero scene ----------
+  (() => {
+    const scene = document.querySelector('.hero-scene');
+    if (!scene) return;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const NOTES = {
+      h1:            'Heading wraps awkwardly at 375px — needs fluid type.',
+      planstarter:   'Starter plan looks identical to Growth without the badge.',
+      plangrowth:    'No "Most popular" badge above this plan card.',
+      planscale:     'Price has no currency suffix for non-USD users.',
+      ctastarter:    'CTA color matches background — low contrast on white.',
+      ctagrowth:     'CTA is identical to Starter — no visual hierarchy.',
+      ctascale:      'CTA blends with the surrounding card border.',
+      testimonial:   'No photo or company logo — feels anonymous.',
+      footerlink:    'Link target scrolls to a 404 on mobile.',
+      footercta:     '“Talk to sales” opens mailto: instead of the form.',
+    };
+    const order = ['h1', 'plangrowth', 'ctagrowth', 'testimonial', 'footercta'];
+
+    let counter = 1;
+    let cursor = 0;
+    let timer = 0;
+    const state = { paused: false, taken: false };
+
+    const dataNameOf = key => ({
+      h1: 'h1',
+      planstarter: 'plan-starter',
+      plangrowth: 'plan-growth',
+      planscale: 'plan-scale',
+      ctastarter: 'cta-starter',
+      ctagrowth: 'cta-growth',
+      ctascale: 'cta-scale',
+      testimonial: 'testimonial',
+      footerlink: 'footer-link',
+      footercta: 'footer-cta',
+    }[key]);
+
+    const trigger = key => {
+      const dn = dataNameOf(key);
+      const el = scene.querySelector(`.hero-target[data-name="${dn}"]`);
+      if (!el || el.classList.contains('hero-marked')) return false;
+      const num = counter++;
+      el.classList.add('hero-marked');
+      const slot = el.querySelector('.hero-marker-slot');
+      if (slot) slot.innerHTML = `<div class="marker">${num}</div>`;
+      const note = NOTES[key];
+      if (note) {
+        const pill = document.createElement('div');
+        pill.className = 'hero-note';
+        pill.textContent = note;
+        el.appendChild(pill);
+      }
+      return true;
+    };
+
+    const reset = () => {
+      scene.querySelectorAll('.hero-target.hero-marked').forEach(el => {
+        el.classList.remove('hero-marked');
+        const slot = el.querySelector('.hero-marker-slot');
+        if (slot) slot.innerHTML = '';
+        const note = el.querySelector('.hero-note');
+        if (note) note.remove();
+      });
+      counter = 1;
+    };
+
+    const advance = () => {
+      if (state.paused || state.taken) return;
+      if (cursor >= order.length) {
+        timer = setTimeout(() => {
+          if (state.paused || state.taken) return;
+          reset();
+          cursor = 0;
+          timer = setTimeout(advance, 600);
+        }, 3200);
+        return;
+      }
+      const ok = trigger(order[cursor]);
+      cursor++;
+      timer = setTimeout(advance, ok ? 1400 : 120);
+    };
+
+    scene.addEventListener('mouseover', e => {
+      const t = e.target.closest('.hero-target');
+      if (!t) return;
+      scene.querySelectorAll('.hero-target.hovering').forEach(el => { if (el !== t) el.classList.remove('hovering'); });
+      t.classList.add('hovering');
+    });
+    scene.addEventListener('mouseout', e => {
+      const t = e.target.closest('.hero-target');
+      if (!t || !t.contains(e.relatedTarget)) { if (t) t.classList.remove('hovering'); }
+    });
+
+    scene.addEventListener('click', e => {
+      const t = e.target.closest('.hero-target[data-name]');
+      if (!t) return;
+      state.taken = true;
+      clearTimeout(timer);
+      if (!t.classList.contains('hero-marked')) {
+        const num = counter++;
+        t.classList.add('hero-marked');
+        const slot = t.querySelector('.hero-marker-slot');
+        if (slot) slot.innerHTML = `<div class="marker">${num}</div>`;
+        const matchingKey = Object.entries({
+          'plan-starter':'planstarter','plan-growth':'plangrowth','plan-scale':'planscale',
+          'cta-starter':'ctastarter','cta-growth':'ctagrowth','cta-scale':'ctascale',
+          'h1':'h1','testimonial':'testimonial','footer-link':'footerlink','footer-cta':'footercta',
+        }).find(([k]) => k === t.dataset.name)?.[1];
+        const note = matchingKey ? NOTES[matchingKey] : null;
+        if (note) {
+          const pill = document.createElement('div');
+          pill.className = 'hero-note';
+          pill.textContent = note;
+          t.appendChild(pill);
+        }
+      }
+    });
+
+    if (!reduced) {
+      timer = setTimeout(advance, 800);
+      scene.addEventListener('pointerenter', () => { state.paused = true; clearTimeout(timer); });
+      scene.addEventListener('pointerleave', () => {
+        if (state.taken) return;
+        state.paused = false;
+        clearTimeout(timer);
+        timer = setTimeout(advance, 400);
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          clearTimeout(timer);
+        } else if (!state.paused && !state.taken) {
+          clearTimeout(timer);
+          timer = setTimeout(advance, 600);
+        }
+      });
+    }
+  })();
+
+  // ---------- repo stars (live, cached 1h) ----------
+  const starsEl = document.getElementById('repoStars');
+  const CACHE_KEY = 'agentecho-stars';
+  const TTL = 60 * 60 * 1000;
+
+  const formatCount = n => {
+    if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'k';
+    return String(n);
+  };
+
+  const renderStars = n => { starsEl.textContent = `★ ${formatCount(n)}`; };
+
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    if (cached && Date.now() - cached.ts < TTL) {
+      renderStars(cached.n);
+    } else {
+      starsEl.classList.add('loading');
+    }
+  } catch (_) {}
+
+  fetch('https://api.github.com/repos/Xenonesis/agentecho', { headers: { 'Accept': 'application/vnd.github+json' } })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      starsEl.classList.remove('loading');
+      if (!data || typeof data.stargazers_count !== 'number') return;
+      renderStars(data.stargazers_count);
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ n: data.stargazers_count, ts: Date.now() }));
+    })
+    .catch(() => { starsEl.classList.remove('loading'); });
+
+  // ---------- starfield ----------
+  (() => {
+    const canvas = document.getElementById('starfield');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const root = document.documentElement;
+
+    let w = 0, h = 0, cx = 0, cy = 0;
+    let stars = [];
+    let running = true;
+    let rafId = 0;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    const PALETTE = {
+      light: { bg: '#FAFAF9', ink: '10,10,10', alphaMax: 0.55, alphaMin: 0.12 },
+      dark:  { bg: '#0A0A0A', ink: '245,245,244', alphaMax: 0.95, alphaMin: 0.35 },
+    };
+
+    const palette = () => root.getAttribute('data-theme') === 'dark' ? PALETTE.dark : PALETTE.light;
+
+    const newStar = (far) => ({
+      x: (Math.random() - 0.5) * w,
+      y: (Math.random() - 0.5) * h,
+      z: far ? Math.random() * w + w : Math.random() * w,
+      pz: 0,
+      tw: Math.random() * Math.PI * 2,
+    });
+
+    const resize = () => {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      cx = w / 2;
+      cy = h / 2;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = w < 640 ? 140 : w < 1024 ? 240 : 400;
+      stars = Array.from({ length: count }, () => newStar(true));
+      paintStatic();
+    };
+
+    const paintStatic = () => {
+      const p = palette();
+      ctx.fillStyle = p.bg;
+      ctx.fillRect(0, 0, w, h);
+      drawStars(0, true);
+    };
+
+    const drawStars = (speed, isStatic) => {
+      const p = palette();
+      const focal = 320;
+      for (const s of stars) {
+        if (!isStatic) {
+          s.pz = s.z;
+          s.z -= speed;
+          s.tw += 0.04;
+          if (s.z <= 1) {
+            s.x = (Math.random() - 0.5) * w;
+            s.y = (Math.random() - 0.5) * h;
+            s.pz = s.z;
+            s.z = w;
+            continue;
+          }
+        }
+        const sx = (s.x / s.z) * focal + cx;
+        const sy = (s.y / s.z) * focal + cy;
+        const px = (s.x / (s.pz || s.z + 0.1)) * focal + cx;
+        const py = (s.y / (s.pz || s.z + 0.1)) * focal + cy;
+        const depth = 1 - Math.min(1, s.z / w);
+        const size = 0.4 + depth * 2.2;
+        const tw = (Math.sin(s.tw) + 1) / 2;
+        const alpha = p.alphaMin + tw * (p.alphaMax - p.alphaMin);
+
+        ctx.strokeStyle = `rgba(${p.ink},${alpha * 0.45})`;
+        ctx.lineWidth = size;
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(sx, sy);
+        ctx.stroke();
+
+        ctx.fillStyle = `rgba(${p.ink},${alpha})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+
+    const tick = () => {
+      if (!running) return;
+      const p = palette();
+      ctx.fillStyle = p.bg;
+      ctx.fillRect(0, 0, w, h);
+      drawStars(2.2, false);
+      rafId = requestAnimationFrame(tick);
+    };
+
+    resize();
+
+    if (!reduced) {
+      rafId = requestAnimationFrame(tick);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          running = false;
+          cancelAnimationFrame(rafId);
+        } else {
+          running = true;
+          rafId = requestAnimationFrame(tick);
+        }
+      });
+    }
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resize, 120);
+    });
+
+    new MutationObserver(paintStatic).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  })();
+
+  // ---------- try-it demo ----------
+  (() => {
+    const items = {
+      revenue:    { tag: 'div',     sel: 'main > section.metrics > div.metric.revenue',   classes: ['metric', 'revenue'], text: '$12,430',                 component: 'MetricCard (React)', note: 'Card overflows on mobile — revenue label gets cut off below 480px.' },
+      users:      { tag: 'div',     sel: 'main > section.metrics > div.metric.users',     classes: ['metric', 'users'],   text: '248',                     component: 'MetricCard (React)', note: 'Number is misaligned with the trend indicator.' },
+      conversion: { tag: 'div',     sel: 'main > section.metrics > div.metric.conversion',classes: ['metric', 'conversion'], text: '3.7%',                 component: 'MetricCard (React)', note: 'Trend arrow missing on first load.' },
+      deploy:     { tag: 'button',  sel: 'main > button.cta-primary',                     classes: ['cta-primary', 'lg'],  id: 'deploy-btn',          text: 'Deploy to production',  component: null,                  note: 'Button is hidden behind the modal on mobile viewports.' },
+      activity:   { tag: 'section', sel: 'main > section.activity',                       classes: ['activity'],           text: 'Latest activity',        component: 'ActivityFeed (React)', note: 'Section padding breaks at 1024px — needs container query.' },
+      row1:       { tag: 'li',      sel: 'section.activity > ul > li:nth-of-type(1)',    classes: ['row'],                text: 'alex@acme.dev',         component: 'ActivityRow (React)',  note: 'Email gets truncated without a tooltip on overflow.' },
+    };
+
+    const out = document.getElementById('tryitOut');
+    const countEl = document.getElementById('tryitCount');
+    const resetBtn = document.getElementById('tryitReset');
+    const copyBtn = document.getElementById('tryitCopy');
+    if (!out || !countEl || !resetBtn || !copyBtn) return;
+
+    const state = { items: [], next: 1 };
+
+    const escapeMd = s => s.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+    const codeSpan = s => '`' + escapeMd(s) + '`';
+    const quoteSpan = s => '> ' + s;
+
+    const renderMarkdown = () => {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      const n = state.items.length;
+
+      if (n === 0) {
+        out.innerHTML = '<span class="tryit-out-empty">// click an element on the left to capture feedback</span>';
+        countEl.textContent = '0';
+        return '';
+      }
+
+      const lines = [];
+      lines.push('<span class="t-title"># AgentEcho Feedback Report</span>');
+      lines.push('');
+      lines.push(`<span class="t-meta">**URL:**</span> https://demo.acme.dev/dashboard`);
+      lines.push(`<span class="t-meta">**Captured:**</span> ${ts}`);
+      lines.push(`<span class="t-meta">**Total Items:**</span> ${n}`);
+      lines.push('');
+      state.items.forEach((it, i) => {
+        const meta = it.meta;
+        lines.push(`<span class="t-c">---</span>`);
+        lines.push('');
+        lines.push(`<span class="t-h">## Feedback #${i + 1}</span>`);
+        lines.push(`<span class="t-q">${quoteSpan(escapeMd(meta.note))}</span>`);
+        lines.push('');
+        lines.push(`- <span class="t-k">**Element:**</span>   ${codeSpan('&lt;' + meta.tag + '&gt;')}`);
+        lines.push(`- <span class="t-k">**Selector:**</span> ${codeSpan(meta.sel)}`);
+        if (meta.classes && meta.classes.length) {
+          lines.push(`- <span class="t-k">**Classes:**</span>  ${meta.classes.map(c => codeSpan(c)).join(', ')}`);
+        }
+        if (meta.id) {
+          lines.push(`- <span class="t-k">**ID:**</span>      ${codeSpan(meta.id)}`);
+        }
+        if (meta.component) {
+          lines.push(`- <span class="t-k">**Component:**</span> <span class="t-comp">${codeSpan(meta.component)}</span>`);
+        }
+        lines.push(`- <span class="t-k">**Text:**</span>     ${codeSpan('"' + meta.text + '"')}`);
+        lines.push('');
+      });
+      const html = lines.join('\n');
+      out.innerHTML = html;
+      countEl.textContent = String(n);
+      return out.textContent;
+    };
+
+    const plainMarkdown = () => {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      const n = state.items.length;
+      const parts = [];
+      parts.push('# AgentEcho Feedback Report\n');
+      parts.push(`**URL:** https://demo.acme.dev/dashboard`);
+      parts.push(`**Captured:** ${ts}`);
+      parts.push(`**Total Items:** ${n}\n`);
+      state.items.forEach((it, i) => {
+        const meta = it.meta;
+        parts.push(`---\n`);
+        parts.push(`## Feedback #${i + 1}`);
+        parts.push(`> ${meta.note}\n`);
+        parts.push(`- **Element:**   \`<${meta.tag}>\``);
+        parts.push(`- **Selector:** \`${meta.sel}\``);
+        if (meta.classes?.length) parts.push(`- **Classes:**  ${meta.classes.map(c => '`' + c + '`').join(', ')}`);
+        if (meta.id) parts.push(`- **ID:**      \`${meta.id}\``);
+        if (meta.component) parts.push(`- **Component:** \`${meta.component}\``);
+        parts.push(`- **Text:**     \`"${meta.text}"\`\n`);
+      });
+      return parts.join('\n');
+    };
+
+    const placeMarker = (name, num) => {
+      const slot = document.querySelector(`[data-marker-for="${name}"]`);
+      if (!slot) return;
+      slot.innerHTML = `<div class="marker">${num}</div>`;
+    };
+
+    document.querySelectorAll('.tryit-target[data-name]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const name = el.dataset.name;
+        if (state.items.find(it => it.name === name)) return;
+        const meta = items[name];
+        if (!meta) return;
+        const num = state.next++;
+        state.items.push({ name, meta });
+        el.classList.add('tryit-marked');
+        placeMarker(name, num);
+        renderMarkdown();
+      });
+    });
+
+    resetBtn.addEventListener('click', () => {
+      state.items = [];
+      state.next = 1;
+      document.querySelectorAll('.tryit-target.tryit-marked').forEach(el => el.classList.remove('tryit-marked'));
+      document.querySelectorAll('.tryit-marker-slot').forEach(s => s.innerHTML = '');
+      renderMarkdown();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const md = plainMarkdown();
+      try {
+        await navigator.clipboard.writeText(md);
+      } catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = md;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (_) {}
+        ta.remove();
+      }
+      copyBtn.classList.add('copied');
+      copyBtn.textContent = 'Copied ✓';
+      setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        copyBtn.textContent = 'Copy Markdown';
+      }, 1600);
+    });
+
+    renderMarkdown();
+
+    // ---------- auto-play ----------
+    const tryitRoot = document.querySelector('.tryit');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const order = ['revenue', 'users', 'conversion', 'deploy', 'activity', 'row1'];
+    const STEP_MS = 1300;
+    const PAUSE_MS = 2400;
+    const RESET_MS = 3200;
+
+    let autoTimer = 0;
+    let cursor = 0;
+    const modeEl = document.getElementById('tryitMode');
+    const syncMode = () => {
+      if (modeEl) modeEl.textContent = userTookOver.value ? 'manual' : paused.value ? 'paused' : 'auto';
+    };
+    const state_ = { userTookOver: false, paused: false };
+    const userTookOver = { get value() { return state_.userTookOver; }, set value(v) { state_.userTookOver = v; syncMode(); } };
+    const paused = { get value() { return state_.paused; }, set value(v) { state_.paused = v; syncMode(); } };
+
+    const stopAuto = () => {
+      if (autoTimer) { clearTimeout(autoTimer); autoTimer = 0; }
+    };
+
+    const triggerByName = name => {
+      const el = document.querySelector(`.tryit-target[data-name="${name}"]`);
+      if (!el) return false;
+      if (el.classList.contains('tryit-marked')) return false;
+      el.click();
+      return true;
+    };
+
+    const advance = () => {
+      if (paused.value || userTookOver.value) return;
+      if (state.items.length === order.length) {
+        autoTimer = setTimeout(() => {
+          if (paused.value || userTookOver.value) return;
+          resetBtn.click();
+          cursor = 0;
+          autoTimer = setTimeout(advance, STEP_MS);
+        }, RESET_MS);
+        return;
+      }
+      const name = order[cursor];
+      const fired = triggerByName(name);
+      cursor = (cursor + 1) % order.length;
+      autoTimer = setTimeout(advance, fired ? STEP_MS : 200);
+    };
+
+    if (tryitRoot && !reduced) {
+      autoTimer = setTimeout(advance, 600);
+
+      tryitRoot.addEventListener('pointerenter', () => { paused.value = true; stopAuto(); });
+      tryitRoot.addEventListener('pointerleave', () => {
+        if (userTookOver.value) return;
+        paused.value = false;
+        stopAuto();
+        autoTimer = setTimeout(advance, 400);
+      });
+
+      tryitRoot.addEventListener('click', e => {
+        const t = e.target.closest('.tryit-target[data-name]');
+        if (!t) return;
+        userTookOver.value = true;
+        stopAuto();
+      }, true);
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          stopAuto();
+        } else if (!paused.value && !userTookOver.value) {
+          stopAuto();
+          autoTimer = setTimeout(advance, 600);
+        }
+      });
+    }
+
+    syncMode();
+  })();
+})();
+</script>
+</body>
+</html>
