@@ -394,6 +394,7 @@ h3 {
   padding: 3px 8px;
   border-radius: 2px;
 }
+[data-theme="dark"] .hero-plan-badge { background: var(--code-bg); color: var(--code-accent); border: 1px solid var(--accent); }
 .hero-plan h4 {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
@@ -497,8 +498,8 @@ h3 {
   position: absolute;
   top: -28px;
   left: 0;
-  background: var(--accent);
-  color: white;
+  background: var(--ink);
+  color: var(--bg);
   padding: 3px 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
@@ -511,8 +512,18 @@ h3 {
   max-width: 360px;
   overflow: hidden;
   text-overflow: ellipsis;
+  border: 1px solid var(--ink);
 }
-.hero-tooltip.cta { background: var(--ink); }
+.hero-tooltip.cta {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+[data-theme="dark"] .hero-tooltip.cta {
+  background: var(--code-bg);
+  color: var(--code-accent);
+  border-color: var(--accent);
+}
 
 .hero-marker-slot {
   position: absolute;
