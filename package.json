@@ -4,7 +4,11 @@
   "description": "Visual feedback annotation tool for developers to place markers on DOM elements and generate AI-optimized Markdown",
   "type": "module",
   "license": "Polyform-Noncommercial-1.0.0",
-  "author": "Areshk",
+  "author": {
+    "name": "Xenonesis",
+    "email": "contact@xenonesis.dev",
+    "url": "https://github.com/Xenonesis"
+  },
   "homepage": "https://github.com/Xenonesis/Pinmark#readme",
   "repository": {
     "type": "git",

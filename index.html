@@ -1155,6 +1155,177 @@ h3 {
 .compare-col .x { color: var(--muted); font-family: 'JetBrains Mono', monospace; }
 .compare-col .check { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
 
+/* ---------- developer card ---------- */
+.dev { margin-top: 24px; }
+.dev-card {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 28px;
+  padding: 32px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  align-items: start;
+}
+.dev-avatar svg { width: 80px; height: 80px; display: block; }
+.dev-body { min-width: 0; }
+.dev-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+.dev-name a { color: var(--ink); text-decoration: none; }
+.dev-name a:hover { color: var(--accent); }
+.dev-real {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.dev-loc { color: var(--ink); }
+.dev-bio {
+  font-size: 14px;
+  color: var(--ink-mid);
+  line-height: 1.55;
+  margin-bottom: 14px;
+  max-width: 560px;
+}
+.dev-stack {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.dev-stack li {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dev-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+.dev-links a {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 1px;
+  transition: border-color 140ms ease;
+}
+.dev-links a:hover { border-color: var(--accent); color: var(--accent); }
+.dev-quote {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  border-left: 2px solid var(--marker);
+  padding: 4px 0 4px 12px;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ---------- comparison table ---------- */
+.cmp { margin-top: 24px; }
+.cmp-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  font-size: 13px;
+}
+.cmp-table th,
+.cmp-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.cmp-table tr:last-child td { border-bottom: 0; }
+.cmp-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: var(--bg);
+  vertical-align: middle;
+}
+.cmp-table th.feat-col { width: 50%; }
+.cmp-table th.brand-col {
+  text-align: center;
+  width: 25%;
+  color: var(--ink);
+}
+.cmp-table th.brand-col.muted { color: var(--muted); }
+.cmp-table .brand-pin-sm {
+  width: 16px;
+  height: 16px;
+  color: var(--marker);
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+  margin-bottom: 3px;
+}
+.cmp-table .brand-sub {
+  font-size: 9px;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+  color: var(--muted);
+}
+.cmp-table td { color: var(--ink-mid); }
+.cmp-table td code {
+  font-size: 11px;
+  background: var(--bg);
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+}
+.cmp-table td.yes,
+.cmp-table td.no,
+.cmp-table td.live {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+}
+.cmp-table td.yes { color: var(--accent); }
+.cmp-table td.no { color: var(--muted); font-weight: 400; }
+.cmp-table td.live {
+  color: white;
+  background: var(--accent);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cmp-table tr.divider td {
+  background: var(--bg);
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 16px;
+  text-align: center;
+}
+.cmp-table tr.divider span { color: var(--marker); }
+.cmp-note {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 16px;
+  line-height: 1.5;
+}
+.cmp-note a { color: var(--accent); }
+
 /* ---------- privacy ---------- */
 .privacy {
   border: 1px solid var(--line);
@@ -1276,6 +1447,13 @@ footer a:hover { color: var(--ink); }
   .settings-grid { grid-template-columns: 1fr; }
   .arch { grid-template-columns: 1fr; }
   .compare { grid-template-columns: 1fr; }
+  .dev-card { grid-template-columns: 1fr; gap: 18px; padding: 24px; }
+  .dev-avatar svg { width: 64px; height: 64px; }
+  .dev-name { font-size: 20px; }
+  .dev-links { gap: 14px; }
+  .cmp-table { font-size: 12px; }
+  .cmp-table th, .cmp-table td { padding: 9px 10px; }
+  .cmp-table .brand-pin-sm { display: none; }
   .privacy-grid { grid-template-columns: 1fr; }
   .tryit { grid-template-columns: 1fr; }
   .tryit-page { border-right: 0; border-bottom: 1px solid var(--line); }
@@ -1842,6 +2020,93 @@ footer a:hover { color: var(--ink); }
   </div>
 </section>
 
+<!-- DEVELOPER -->
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// developer</span>
+    <h2>Built by one person, for many</h2>
+    <div class="dev">
+      <div class="dev-card">
+        <div class="dev-avatar" aria-hidden="true">
+          <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+            <rect width="80" height="80" rx="16" fill="var(--accent)"/>
+            <text x="40" y="52" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="34" font-weight="700" fill="white">X</text>
+          </svg>
+        </div>
+        <div class="dev-body">
+          <div class="dev-name"><a href="https://github.com/Xenonesis" target="_blank" rel="noopener">Xenonesis</a></div>
+          <div class="dev-real">Aditya Kumar Tiwari &middot; <span class="dev-loc">India 🇮🇳</span></div>
+          <p class="dev-bio">Cybersecurity &middot; Full Stack &middot; AI/ML. Builds tools that close the loop between humans and the systems they ship.</p>
+          <ul class="dev-stack">
+            <li>React</li><li>Next.js</li><li>Node.js</li><li>TypeScript</li><li>Python</li>
+            <li>TensorFlow</li><li>PyTorch</li><li>NLP</li>
+          </ul>
+          <div class="dev-links">
+            <a href="https://github.com/Xenonesis" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://iaddy.netlify.app" target="_blank" rel="noopener">Portfolio</a>
+            <a href="https://linkedin.com/in/aditya-kumar-tiwari" target="_blank" rel="noopener">LinkedIn</a>
+            <a href="https://twitter.com/XenonesisHacks" target="_blank" rel="noopener">Twitter</a>
+            <a href="mailto:contact@xenonesis.dev">Email</a>
+          </div>
+          <blockquote class="dev-quote">break things &rarr; understand them &rarr; make them unbreakable</blockquote>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// lineage</span>
+    <h2>Pinmark vs Areshkew/agentecho</h2>
+    <p class="lede" style="margin-bottom: 32px; max-width: 680px;">
+      Pinmark is a maintained continuation of <a href="https://github.com/Areshkew/agentecho" target="_blank" rel="noopener"><strong>Areshkew/agentecho</strong></a> — same Chrome Web Store listing, same extension ID, refreshed under a new name and active development.
+    </p>
+    <div class="cmp">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th class="feat-col">Feature</th>
+            <th class="brand-col">
+              <svg class="brand-pin-sm" viewBox="0 0 128 128" aria-hidden="true">
+                <path d="M64 118 C64 118 102 82 102 50 C102 26 86 8 64 8 C42 8 26 26 26 50 C26 82 64 118 64 118 Z" fill="currentColor"/>
+                <circle cx="64" cy="48" r="14" fill="var(--bg-elev)"/>
+                <circle cx="64" cy="48" r="6" fill="var(--accent)"/>
+              </svg>
+              Pinmark
+            </th>
+            <th class="brand-col muted">Areshkew<br><span class="brand-sub">agentecho</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Visual markers + hover outline</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td>Markdown feedback export</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td>Shadow DOM isolation</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td>Framework detection (React / Angular)</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td>Keyboard shortcuts (<code>C</code>, <code>H</code>, <code>Esc</code>)</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td>Per-page feedback persistence</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td>Chrome MV3 &middot; TypeScript 5.6</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr class="divider"><td colspan="3"><span>Pinmark additions</span></td></tr>
+          <tr><td>Interactive landing page (auto-play hero)</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td>Live two-pane "try it" demo</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td>Live GitHub stars badge</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td>GitHub Pages site</td><td class="yes live">live</td><td class="no">—</td></tr>
+          <tr><td>3-mode theme (light / dark / auto) on web + popup</td><td class="yes">✓</td><td class="no">popup only</td></tr>
+          <tr><td>Custom pin logo + favicon</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td>Unified <code>ThemeProvider</code> (storage-agnostic)</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td>Active maintenance &amp; releases</td><td class="yes">✓</td><td class="no">static</td></tr>
+        </tbody>
+      </table>
+      <p class="cmp-note">
+        Same engine, polished surface. If you already use the original, switching costs you nothing — the extension ID and Chrome Web Store listing are unchanged. <a href="https://github.com/Areshkew/agentecho" target="_blank" rel="noopener">View the original →</a>
+      </p>
+    </div>
+  </div>
+</section>
+
 <!-- LICENSE -->
 <section>
   <div class="wrap">
@@ -1856,7 +2121,7 @@ footer a:hover { color: var(--ink); }
 
 <footer>
   <div class="row">
-    <div>Pinmark · built with care for developers who care about details</div>
+    <div>Pinmark · built by <a href="https://github.com/Xenonesis" target="_blank" rel="noopener">Xenonesis</a> with care for developers who care about details</div>
     <div>
       <a href="https://github.com/Xenonesis/Pinmark" target="_blank" rel="noopener">GitHub</a>
       &nbsp;·&nbsp;

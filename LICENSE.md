@@ -87,10 +87,10 @@ royalty-free, non-exclusive license to the following:
 - Using the extension in revenue-generating products
 
 **Commercial Licensing:**
-The copyright holder (Areshk) reserves the right to distribute Pinmark commercially,
+The copyright holder (Xenonesis) reserves the right to distribute Pinmark commercially,
 including sales on the Chrome Web Store and other commercial channels. For commercial
 licensing inquiries, please contact the copyright holder directly.
 
 ---
 
-**Copyright (c) 2026 Areshk. All Rights Reserved.**
+**Copyright (c) 2026 Xenonesis. All Rights Reserved.**

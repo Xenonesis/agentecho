@@ -12,4 +12,4 @@ No remote servers
 Pinmark does not send data to external servers and does not use analytics, tracking, or remote code.
 
 Contact
-If you have questions about this policy, contact: areshkew@gmail.com
+If you have questions about this policy, contact: contact@xenonesis.dev

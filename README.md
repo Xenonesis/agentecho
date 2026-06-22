@@ -292,6 +292,46 @@ Built with modern web standards and Chrome Extension Manifest V3.
 
 ---
 
+## Author
+
+Built and maintained by **[Xenonesis](https://github.com/Xenonesis)** (Aditya Kumar Tiwari).
+
+- 🌍 Based in India
+- 🔐 Cybersecurity · Full Stack · AI/ML
+- 🧰 Stack: React, Next.js, Node.js, TypeScript, Python
+- 🧠 Working in TensorFlow, PyTorch, Computer Vision, NLP, LLMs
+- 🔗 [Portfolio](https://iaddy.netlify.app) · [LinkedIn](https://linkedin.com/in/aditya-kumar-tiwari) · [X / Twitter](https://twitter.com/XenonesisHacks) · [Email](mailto:contact@xenonesis.dev)
+
+> *break things → understand them → make them unbreakable*
+
+---
+
+## Pinmark vs Areshkew/agentecho
+
+Pinmark is a maintained continuation of [Areshkew/agentecho](https://github.com/Areshkew/agentecho) — same Chrome Web Store listing (`fdkdjnebmcmlhnbecbfefebpdhihdjjb`), same extension ID, refreshed under a new name and active development.
+
+| | Pinmark (this repo) | Areshkew/agentecho |
+|---|---|---|
+| **Visual markers + hover outline** | ✓ | ✓ |
+| **Markdown feedback export** | ✓ | ✓ |
+| **Shadow DOM isolation** | ✓ | ✓ |
+| **Framework detection (React/Angular)** | ✓ | ✓ |
+| **Keyboard shortcuts (`C`, `H`, `Esc`, …)** | ✓ | ✓ |
+| **Per-page feedback persistence** | ✓ | ✓ |
+| **Chrome MV3 / TypeScript 5.6** | ✓ | ✓ |
+| **Interactive landing page (auto-play demo)** | ✓ | ✗ (static readme-only) |
+| **Live "try it" two-pane demo** | ✓ | ✗ |
+| **Live GitHub stars badge** | ✓ | ✗ |
+| **GitHub Pages site** | ✓ (live) | ✗ |
+| **3-mode theme (light / dark / auto)** | ✓ (web + popup) | partial (popup only) |
+| **Custom pin logo + favicon** | ✓ | ✗ |
+| **Unified `ThemeProvider` (storage-agnostic)** | ✓ | ✗ |
+| **Active maintenance** | ✓ | ✗ (static) |
+
+**Same engine, polished surface.** If you already use the original, switching costs you nothing — the extension ID and Chrome Web Store listing are unchanged.
+
+---
+
 <div align="center">
 
   **Made with care for developers who care about details**
