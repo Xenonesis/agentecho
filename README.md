@@ -4,9 +4,10 @@
 
   **Visual feedback annotation tool for developers**
 
-  [![License: Polyform Noncommercial](https://img.shields.io/badge/License-Polyform_Noncommercial_1.0.0-red.svg)](LICENSE.md)
-  [![Chrome Version](https://img.shields.io/badge/Chrome-Manifest%20V3-green.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg)](https://www.typescriptlang.org/)
+  [![Website](https://img.shields.io/website?url=https%3A%2F%2Fxenonesis.github.io%2FPinmark%2F&style=flat-square&label=website)](https://xenonesis.github.io/Pinmark/)
+  [![License: Polyform Noncommercial](https://img.shields.io/badge/License-Polyform_Noncommercial_1.0.0-red.svg?style=flat-square)](LICENSE.md)
+  [![Chrome Version](https://img.shields.io/badge/Chrome-Manifest%20V3-green.svg?style=flat-square)](https://developer.chrome.com/docs/extensions/mv3/intro/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
   [Features](#-features) &bull; [Installation](#-installation) &bull; [Usage](#-usage) &bull; [Development](#-development)
 
