@@ -1518,7 +1518,26 @@ h3 {
   background: var(--bg-elev);
   align-items: start;
 }
-.dev-avatar svg { width: 80px; height: 80px; display: block; }
+.dev-avatar {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex: 0 0 auto;
+}
+.dev-avatar svg,
+.dev-avatar img {
+  width: 80px;
+  height: 80px;
+  display: block;
+  border-radius: 16px;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.dev-avatar img { object-fit: cover; position: absolute; inset: 0; }
+.dev-avatar:hover img,
+.dev-avatar:hover svg {
+  transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(67, 56, 202, 0.25);
+}
 .dev-body { min-width: 0; }
 .dev-name {
   font-family: 'Inter', sans-serif;
@@ -1526,16 +1545,73 @@ h3 {
   font-weight: 700;
   letter-spacing: -0.01em;
   margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .dev-name a { color: var(--ink); text-decoration: none; }
 .dev-name a:hover { color: var(--accent); }
+.dev-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--marker);
+  flex: 0 0 auto;
+  position: relative;
+  display: inline-block;
+}
+.dev-live-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid var(--marker);
+  opacity: 0;
+  animation: livePulseRing 1.8s ease-out infinite;
+}
+@keyframes livePulseRing {
+  0%   { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.dev-live-dot.is-stale { background: var(--muted); }
+.dev-live-dot.is-stale::after { display: none; }
 .dev-real {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   color: var(--muted);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .dev-loc { color: var(--ink); }
+
+/* live GitHub stats */
+.dev-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.dev-stat {
+  display: flex;
+  flex-direction: column;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dev-stat b {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+  transition: color 200ms ease;
+}
+.dev-stat.is-loaded b { color: var(--accent); }
+.dev-stat em { font-style: normal; }
 .dev-bio {
   font-size: 14px;
   color: var(--ink-mid);
@@ -1559,6 +1635,18 @@ h3 {
   color: var(--ink-mid);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+.dev-stack li:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.dev-stack li.is-copied {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
 }
 .dev-links {
   display: flex;
@@ -1688,6 +1776,66 @@ h3 {
 }
 .cmp-table td.yes { color: var(--accent); }
 .cmp-table td.no { color: var(--muted); font-weight: 400; }
+
+/* status pills */
+.cmp-table td.yes .pill,
+.cmp-table td.no .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.cmp-table td.yes .pill {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.cmp-table td.no .pill {
+  background: var(--bg);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+.cmp-table td.no .pill.is-stub {
+  background: color-mix(in srgb, var(--marker) 8%, transparent);
+  color: var(--marker);
+  border-color: color-mix(in srgb, var(--marker) 25%, transparent);
+}
+
+/* feature cell with category */
+.cmp-table .cmp-feat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--ink);
+}
+.cmp-table .cmp-cat {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 2px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.cmp-table .cmp-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  width: 18px;
+  text-align: right;
+  flex: 0 0 auto;
+}
 .cmp-table tr.divider td {
   background: var(--bg);
   color: var(--muted);
@@ -1701,40 +1849,53 @@ h3 {
 .cmp-table tr.divider span { color: var(--marker); }
 
 /* click-to-expand rows */
-.cmp-table tr.cmp-row { cursor: pointer; transition: background 140ms ease; }
-.cmp-table tr.cmp-row:hover td { background: var(--bg); }
+.cmp-table tr.cmp-row {
+  cursor: pointer;
+  transition: background 160ms ease, box-shadow 160ms ease;
+  position: relative;
+}
+.cmp-table tr.cmp-row td {
+  transition: background 160ms ease, color 160ms ease;
+}
+.cmp-table tr.cmp-row:hover td {
+  background: color-mix(in srgb, var(--accent) 4%, var(--bg-elev));
+}
 .cmp-table tr.cmp-row:hover td:first-child { color: var(--ink); }
-.cmp-table tr.cmp-row:hover td:first-child::before {
-  content: 'i';
-  display: inline-block;
-  width: 14px; height: 14px;
-  margin-right: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: white;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 14px;
-  text-align: center;
-  vertical-align: middle;
+.cmp-table tr.cmp-row:hover .cmp-cat {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.cmp-table tr.cmp-row.expanded td:first-child {
+  border-left: 2px solid var(--accent);
 }
 .cmp-detail-row td {
-  padding: 0 16px 0 38px;
-  background: var(--accent-soft);
+  padding: 0 16px 0 56px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-elev));
   color: var(--ink-mid);
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.6;
   border-bottom: 1px solid var(--line);
   max-height: 0;
   overflow: hidden;
-  transition: max-height 260ms ease, padding 260ms ease;
+  transition: max-height 320ms cubic-bezier(.2,.9,.3,1), padding 320ms cubic-bezier(.2,.9,.3,1);
 }
 .cmp-detail-row.open td {
-  max-height: 200px;
-  padding: 14px 16px 14px 38px;
+  max-height: 240px;
+  padding: 16px 20px 18px 56px;
+  border-left: 2px solid var(--accent);
 }
 .cmp-table[data-mode="diff"] tr.cmp-row.shared { display: none; }
+
+/* row summary in toolbar */
+.cmp-summary {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-left: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cmp-summary strong { color: var(--ink); font-weight: 600; }
 .cmp-note {
   font-size: 13px;
   color: var(--muted);
@@ -2572,17 +2733,25 @@ footer a:hover { color: var(--ink); }
     <h2>Built by one person, for many</h2>
     <div class="dev">
       <div class="dev-card">
-        <div class="dev-avatar" aria-hidden="true">
+        <div class="dev-avatar" id="devAvatar" aria-hidden="true">
           <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
             <rect width="80" height="80" rx="16" fill="var(--accent)"/>
             <text x="40" y="52" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="34" font-weight="700" fill="white">X</text>
           </svg>
         </div>
         <div class="dev-body">
-          <div class="dev-name"><a href="https://github.com/Xenonesis" target="_blank" rel="noopener">Xenonesis</a></div>
+          <div class="dev-name">
+            <a href="https://github.com/Xenonesis" target="_blank" rel="noopener">Xenonesis</a>
+            <span class="dev-live-dot" title="Live data from GitHub"></span>
+          </div>
           <div class="dev-real">Aditya Kumar Tiwari &middot; <span class="dev-loc">India 🇮🇳</span></div>
-          <p class="dev-bio">Cybersecurity &middot; Full Stack &middot; AI/ML. Builds tools that close the loop between humans and the systems they ship.</p>
-          <ul class="dev-stack">
+          <div class="dev-stats" id="devStats" aria-live="polite">
+            <span class="dev-stat" data-stat="followers"><b>—</b><em>followers</em></span>
+            <span class="dev-stat" data-stat="repos"><b>—</b><em>public repos</em></span>
+            <span class="dev-stat" data-stat="gists"><b>—</b><em>gists</em></span>
+          </div>
+          <p class="dev-bio" id="devBio">Cybersecurity &middot; Full Stack &middot; AI/ML. Builds tools that close the loop between humans and the systems they ship.</p>
+          <ul class="dev-stack" id="devStack">
             <li>React</li><li>Next.js</li><li>Node.js</li><li>TypeScript</li><li>Python</li>
             <li>TensorFlow</li><li>PyTorch</li><li>NLP</li>
           </ul>
@@ -2616,6 +2785,7 @@ footer a:hover { color: var(--ink); }
           <span class="cmp-toggle-opt" data-mode="diff">Only differences</span>
         </button>
         <span class="cmp-hint">Click any row for details</span>
+        <span class="cmp-summary" id="cmpSummary"><strong>11</strong> rows &middot; <strong>7</strong> shared &middot; <strong>4</strong> pinmark-only</span>
       </div>
       <table class="cmp-table" data-mode="all">
         <thead>
@@ -2633,61 +2803,61 @@ footer a:hover { color: var(--ink); }
           </tr>
         </thead>
         <tbody>
-          <tr class="cmp-row" data-detail="Numbered red dots anchored to clicked elements; visible until cleared or the page is reloaded.">
-            <td>Visual markers + hover outline</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
+          <tr class="cmp-row" data-cat="core" data-detail="Numbered red dots anchored to clicked elements; visible until cleared or the page is reloaded.">
+            <td><div class="cmp-feat"><span class="cmp-num">01</span><span class="cmp-cat">core</span>Visual markers + hover outline</div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="yes"><span class="pill">Yes</span></td>
           </tr>
-          <tr class="cmp-row" data-detail="Clipboard-friendly format that AI tools parse directly — one keystroke copies the whole report.">
-            <td>Markdown feedback export</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
+          <tr class="cmp-row" data-cat="core" data-detail="Clipboard-friendly format that AI tools parse directly — one keystroke copies the whole report.">
+            <td><div class="cmp-feat"><span class="cmp-num">02</span><span class="cmp-cat">core</span>Markdown feedback export</div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="yes"><span class="pill">Yes</span></td>
           </tr>
-          <tr class="cmp-row" data-detail="Page styles can't bleed in, our styles can't bleed out — overlays never fight the host site.">
-            <td>Shadow DOM isolation</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
+          <tr class="cmp-row" data-cat="core" data-detail="Page styles can't bleed in, our styles can't bleed out — overlays never fight the host site.">
+            <td><div class="cmp-feat"><span class="cmp-num">03</span><span class="cmp-cat">core</span>Shadow DOM isolation</div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="yes"><span class="pill">Yes</span></td>
           </tr>
-          <tr class="cmp-row" data-detail="Detects React (via __reactFiber$) and Angular (via debug properties). Component names appear in the Markdown report.">
-            <td>Framework detection (React / Angular)</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
+          <tr class="cmp-row" data-cat="ux" data-detail="Detects React (via __reactFiber$) and Angular (via debug properties). Component names appear in the Markdown report.">
+            <td><div class="cmp-feat"><span class="cmp-num">04</span><span class="cmp-cat">ux</span>Framework detection (React / Angular)</div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="yes"><span class="pill">Yes</span></td>
           </tr>
-          <tr class="cmp-row" data-detail="C copies, H toggles marker visibility, Esc exits, Ctrl/⌘+Shift+A exits globally.">
-            <td>Keyboard shortcuts (<code>C</code>, <code>H</code>, <code>Esc</code>)</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
+          <tr class="cmp-row" data-cat="ux" data-detail="C copies, H toggles marker visibility, Esc exits, Ctrl/⌘+Shift+A exits globally.">
+            <td><div class="cmp-feat"><span class="cmp-num">05</span><span class="cmp-cat">ux</span>Keyboard shortcuts (<code>C</code>, <code>H</code>, <code>Esc</code>)</div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="yes"><span class="pill">Yes</span></td>
           </tr>
-          <tr class="cmp-row" data-detail="Feedback is keyed by origin + path, restored on revisit. Cleared manually or via the toolbar.">
-            <td>Per-page feedback persistence</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
+          <tr class="cmp-row" data-cat="ux" data-detail="Feedback is keyed by origin + path, restored on revisit. Cleared manually or via the toolbar.">
+            <td><div class="cmp-feat"><span class="cmp-num">06</span><span class="cmp-cat">ux</span>Per-page feedback persistence</div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="yes"><span class="pill">Yes</span></td>
           </tr>
-          <tr class="cmp-row" data-detail="Modern extension API surface, TypeScript 5.6 strict, Vite 5 build via @crxjs/vite-plugin.">
-            <td>Chrome MV3 &middot; TypeScript 5.6</td>
-            <td class="yes">✓</td>
-            <td class="yes">✓</td>
+          <tr class="cmp-row" data-cat="build" data-detail="Modern extension API surface, TypeScript 5.6 strict, Vite 5 build via @crxjs/vite-plugin.">
+            <td><div class="cmp-feat"><span class="cmp-num">07</span><span class="cmp-cat">build</span>Chrome MV3 &middot; TypeScript 5.6</div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="yes"><span class="pill">Yes</span></td>
           </tr>
           <tr class="divider"><td colspan="3"><span>Pinmark extensions</span></td></tr>
-          <tr class="cmp-row" data-detail="Multiple commits since the rename: dark-mode contrast fixes, interactive landing page, unified theme provider. Areshkew's repo has been static since January 2026.">
-            <td>Active maintenance &amp; releases</td>
-            <td class="yes">✓</td>
-            <td class="no">static</td>
+          <tr class="cmp-row" data-cat="mnt" data-detail="Multiple commits since the rename: dark-mode contrast fixes, interactive landing page, unified theme provider. Areshkew's repo has been static since January 2026.">
+            <td><div class="cmp-feat"><span class="cmp-num">08</span><span class="cmp-cat">mnt</span>Active maintenance &amp; releases</div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="no"><span class="pill is-stub">static</span></td>
           </tr>
-          <tr class="cmp-row" data-detail="Popup theme select is wired up — picks auto/light/dark, persists per install, applies before first paint. Areshkew's select is a stub; the popup only follows OS via @media query.">
-            <td>3-mode theme actually works in popup</td>
-            <td class="yes">✓</td>
-            <td class="no">stub</td>
+          <tr class="cmp-row" data-cat="mnt" data-detail="Popup theme select is wired up — picks auto/light/dark, persists per install, applies before first paint. Areshkew's select is a stub; the popup only follows OS via @media query.">
+            <td><div class="cmp-feat"><span class="cmp-num">09</span><span class="cmp-cat">mnt</span>3-mode theme actually works in popup</div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="no"><span class="pill is-stub">stub</span></td>
           </tr>
-          <tr class="cmp-row" data-detail="Single class used by both the landing page and the popup — storage-agnostic via a ThemeStorage adapter. Areshkew's theme logic is duplicated across contexts with no shared abstraction.">
-            <td>Unified <code>ThemeProvider</code></td>
-            <td class="yes">✓</td>
-            <td class="no">—</td>
+          <tr class="cmp-row" data-cat="mnt" data-detail="Single class used by both the landing page and the popup — storage-agnostic via a ThemeStorage adapter. Areshkew's theme logic is duplicated across contexts with no shared abstraction.">
+            <td><div class="cmp-feat"><span class="cmp-num">10</span><span class="cmp-cat">mnt</span>Unified <code>ThemeProvider</code></div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="no"><span class="pill">—</span></td>
           </tr>
-          <tr class="cmp-row" data-detail="ExtensionSettings is a strict TypeScript interface shared between popup and background; getSettings/saveSettings guarantee shape. Areshkew types settings as any.">
-            <td>Typed <code>ExtensionSettings</code></td>
-            <td class="yes">✓</td>
-            <td class="no">—</td>
+          <tr class="cmp-row" data-cat="mnt" data-detail="ExtensionSettings is a strict TypeScript interface shared between popup and background; getSettings/saveSettings guarantee shape. Areshkew types settings as any.">
+            <td><div class="cmp-feat"><span class="cmp-num">11</span><span class="cmp-cat">mnt</span>Typed <code>ExtensionSettings</code></div></td>
+            <td class="yes"><span class="pill">Yes</span></td>
+            <td class="no"><span class="pill">—</span></td>
           </tr>
         </tbody>
       </table>
@@ -2989,6 +3159,93 @@ footer a:hover { color: var(--ink); }
     })
     .catch(() => { starsEl.classList.remove('loading'); });
 
+  // ---------- github profile (avatar + stats) ----------
+  const GH_KEY = 'pinmark-github';
+  const GH_TTL = 60 * 60 * 1000;
+  const devAvatar = document.getElementById('devAvatar');
+  const devStats = document.getElementById('devStats');
+  const devBio = document.getElementById('devBio');
+  const devLiveDot = document.querySelector('.dev-live-dot');
+
+  const renderProfile = data => {
+    if (!data) return;
+    // Replace SVG fallback with real avatar image
+    if (data.avatar_url && devAvatar) {
+      const img = document.createElement('img');
+      img.src = data.avatar_url + '&s=160';
+      img.alt = data.login || 'Xenonesis';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.onload = () => {
+        const svg = devAvatar.querySelector('svg');
+        if (svg) svg.style.display = 'none';
+        img.style.opacity = '0';
+        img.style.transition = 'opacity 220ms ease';
+        requestAnimationFrame(() => { img.style.opacity = '1'; });
+        devAvatar.appendChild(img);
+      };
+    }
+    if (devStats) {
+      const set = (key, val) => {
+        const el = devStats.querySelector(`[data-stat="${key}"] b`);
+        if (el) { el.textContent = formatCount(val); el.parentElement.classList.add('is-loaded'); }
+      };
+      set('followers', data.followers ?? 0);
+      set('repos', data.public_repos ?? 0);
+      set('gists', data.public_gists ?? 0);
+    }
+    if (data.bio && devBio) {
+      // Keep our hard-coded short bio; just append GH bio as a richer hint via title.
+      devBio.title = data.bio;
+    }
+  };
+
+  // Try cache first
+  try {
+    const cached = JSON.parse(localStorage.getItem(GH_KEY) || 'null');
+    if (cached && Date.now() - cached.ts < GH_TTL && cached.data) {
+      renderProfile(cached.data);
+    }
+  } catch (_) {}
+
+  fetch('https://api.github.com/users/Xenonesis', { headers: { 'Accept': 'application/vnd.github+json' } })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!data) {
+        if (devLiveDot) devLiveDot.classList.add('is-stale');
+        return;
+      }
+      renderProfile(data);
+      localStorage.setItem(GH_KEY, JSON.stringify({ data, ts: Date.now() }));
+    })
+    .catch(() => { if (devLiveDot) devLiveDot.classList.add('is-stale'); });
+
+  // Stack chips: click to copy, show 'copied' state
+  const stack = document.getElementById('devStack');
+  if (stack) {
+    stack.querySelectorAll('li').forEach(li => {
+      li.title = 'Click to copy';
+      li.addEventListener('click', async () => {
+        const text = li.textContent.trim();
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch (_) {
+          // Fallback: hidden textarea
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); } catch (_) {}
+          ta.remove();
+        }
+        li.classList.add('is-copied');
+        setTimeout(() => li.classList.remove('is-copied'), 900);
+      });
+    });
+  }
+
   // ---------- starfield ----------
   (() => {
     const canvas = document.getElementById('starfield');
@@ -3151,6 +3408,15 @@ footer a:hover { color: var(--ink); }
         toggle.querySelectorAll('.cmp-toggle-opt').forEach(o => o.classList.toggle('active', o === opt));
         table.dataset.mode = mode;
       });
+    }
+
+    // Live summary: total rows, shared, pinmark-only
+    const summary = document.getElementById('cmpSummary');
+    if (summary) {
+      const total = tbody.querySelectorAll('tr.cmp-row').length;
+      const shared = tbody.querySelectorAll('tr.cmp-row.shared').length;
+      const only = total - shared;
+      summary.innerHTML = `<strong>${total}</strong> rows &middot; <strong>${shared}</strong> shared &middot; <strong>${only}</strong> pinmark-only`;
     }
   })();
 
