@@ -5,13 +5,13 @@
   "type": "module",
   "license": "Polyform-Noncommercial-1.0.0",
   "author": "Areshk",
-  "homepage": "https://github.com/Xenonesis/pinmark#readme",
+  "homepage": "https://github.com/Xenonesis/Pinmark#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Xenonesis/pinmark.git"
+    "url": "git+https://github.com/Xenonesis/Pinmark.git"
   },
   "bugs": {
-    "url": "https://github.com/Xenonesis/pinmark/issues"
+    "url": "https://github.com/Xenonesis/Pinmark/issues"
   },
   "scripts": {
     "dev": "vite",
