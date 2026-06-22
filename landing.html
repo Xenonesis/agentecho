@@ -111,15 +111,15 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
-.brand-dot {
-  width: 8px; height: 8px;
-  background: var(--marker);
-  border-radius: 50%;
-  box-shadow: 0 0 0 3px var(--marker-soft);
+.brand-pin {
+  width: 22px;
+  height: 22px;
+  color: var(--marker);
+  flex: 0 0 auto;
 }
 .topbar-meta { color: var(--muted); }
 .topbar-meta span { color: var(--ink); }
@@ -1275,8 +1275,8 @@ footer a:hover { color: var(--ink); }
   section { padding: 52px 0; }
   .topbar-inner { padding: 12px 16px; gap: 8px; }
   .topbar-inner, footer .row, .wrap { padding-left: 16px; padding-right: 16px; }
-  .brand { font-size: 11px; gap: 8px; }
-  .brand-dot { width: 7px; height: 7px; box-shadow: 0 0 0 2px var(--marker-soft); }
+  .brand { font-size: 11px; gap: 6px; }
+  .brand-pin { width: 18px; height: 18px; }
   .eyebrow { font-size: 11px; margin-bottom: 18px; }
   h1 { font-size: clamp(26px, 8.5vw, 34px); line-height: 1.1; }
   h2 { font-size: 20px; }
@@ -1347,7 +1347,14 @@ footer a:hover { color: var(--ink); }
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="brand-dot"></span> Pinmark</div>
+    <div class="brand">
+      <svg class="brand-pin" viewBox="0 0 128 128" aria-hidden="true">
+        <path d="M64 118 C64 118 102 82 102 50 C102 26 86 8 64 8 C42 8 26 26 26 50 C26 82 64 118 64 118 Z" fill="currentColor"/>
+        <circle cx="64" cy="48" r="14" fill="var(--bg)"/>
+        <circle cx="64" cy="48" r="6" fill="var(--accent)"/>
+      </svg>
+      Pinmark
+    </div>
     <div class="topbar-meta">v1.0.0 &nbsp;·&nbsp; <span>Chrome MV3</span> &nbsp;·&nbsp; TypeScript</div>
     <div class="topbar-actions">
       <a class="repo-badge" id="repoBadge" href="https://github.com/Xenonesis/Pinmark" target="_blank" rel="noopener" aria-label="View repository on GitHub">

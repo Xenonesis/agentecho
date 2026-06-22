@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="assets/logo-text.jpg" alt="Pinmark Logo" width="400">
+  <img src="assets/logo.png" alt="Pinmark" width="640">
 
   **Visual feedback annotation tool for developers**
 
