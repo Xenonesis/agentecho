@@ -8,8 +8,17 @@
   --hover-bg: #f9fafb;
 }
 
+/* dark theme — JS-driven via [data-theme] attribute */
+:root[data-theme="dark"] {
+  --bg-color: #1f2937;
+  --text-color: #f9fafb;
+  --border-color: #374151;
+  --hover-bg: #374151;
+}
+
+/* no-JS fallback: follow OS only when attribute hasn't been set */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --bg-color: #1f2937;
     --text-color: #f9fafb;
     --border-color: #374151;
@@ -62,6 +71,7 @@ body {
   font-size: 12px;
   color: #6b7280;
 }
+:root[data-theme="dark"] .version { color: #9ca3af; }
 
 .main-content {
   display: flex;
@@ -125,6 +135,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+:root[data-theme="dark"] .settings-title { color: #9ca3af; }
 
 .setting-item {
   display: flex;

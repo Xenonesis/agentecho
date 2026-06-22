@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,6 +10,21 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<script>
+  // Inline theme bootstrap — avoids flash of light theme on dark-preferred systems.
+  // The full ThemeProvider below still owns persistence + cycling.
+  (function () {
+    try {
+      var saved = localStorage.getItem('pinmark-theme');
+      var mode = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : 'auto';
+      var resolved = mode === 'auto'
+        ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : mode;
+      document.documentElement.setAttribute('data-theme', resolved);
+      document.documentElement.setAttribute('data-theme-mode', mode);
+    } catch (e) { /* localStorage unavailable, ignore */ }
+  })();
+</script>
 <style>
 /* ---------- tokens ---------- */
 :root {
@@ -161,6 +176,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .repo-badge .repo-stars.loading { opacity: 0.4; }
 
 .theme-toggle {
+  position: relative;
   width: 32px; height: 32px;
   display: inline-flex;
   align-items: center;
@@ -174,10 +190,23 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 }
 .theme-toggle:hover { border-color: var(--ink); }
 .theme-toggle svg { width: 14px; height: 14px; }
-[data-theme="dark"] .icon-sun { display: block; }
-[data-theme="dark"] .icon-moon { display: none; }
-[data-theme="light"] .icon-sun { display: none; }
-[data-theme="light"] .icon-moon { display: block; }
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon { display: none; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+/* 'auto' indicator dot */
+.theme-toggle::after {
+  content: '';
+  position: absolute;
+  top: -3px; right: -3px;
+  width: 7px; height: 7px;
+  background: var(--marker);
+  border: 1.5px solid var(--bg-elev);
+  border-radius: 50%;
+  display: none;
+}
+.theme-toggle[data-mode="auto"]::after { display: block; }
+.theme-toggle[data-mode="auto"] { border-color: var(--marker); }
 
 /* ---------- layout ---------- */
 .wrap { max-width: var(--max); margin: 0 auto; padding: 0 32px; }
@@ -1839,26 +1868,89 @@ footer a:hover { color: var(--ink); }
 <script>
 (() => {
   // ---------- theme ----------
+  // ---------- theme provider ----------
+  // Mirrors src/shared/theme-provider.ts (inlined for single-file delivery).
+  // 3-mode theme: light / dark / auto (follow OS).
+  class ThemeProvider {
+    #mode = 'auto';
+    #target;
+    #storage;
+    #media;
+    #listeners = new Set();
+    #initialized = false;
+    constructor({ target = document.documentElement, storage, defaultMode = 'auto' } = {}) {
+      this.#target = target;
+      this.#storage = storage;
+      this.#mode = defaultMode;
+      this.#media = matchMedia('(prefers-color-scheme: dark)');
+    }
+    async init() {
+      if (this.#initialized) return;
+      const saved = await this.#storage.get();
+      if (saved === 'light' || saved === 'dark' || saved === 'auto') this.#mode = saved;
+      this.#apply();
+      this.#media.addEventListener('change', this.#onSystemChange);
+      this.#initialized = true;
+    }
+    get mode() { return this.#mode; }
+    get resolved() {
+      return this.#mode === 'auto' ? (this.#media.matches ? 'dark' : 'light') : this.#mode;
+    }
+    async set(mode) {
+      this.#mode = mode;
+      await this.#storage.set(mode);
+      this.#apply();
+      this.#notify();
+    }
+    async cycle() {
+      const order = ['light', 'dark', 'auto'];
+      const next = order[(order.indexOf(this.#mode) + 1) % order.length];
+      await this.set(next);
+      return next;
+    }
+    subscribe(listener) {
+      this.#listeners.add(listener);
+      return () => this.#listeners.delete(listener);
+    }
+    destroy() {
+      this.#media.removeEventListener('change', this.#onSystemChange);
+      this.#listeners.clear();
+    }
+    #onSystemChange = () => { if (this.#mode === 'auto') this.#apply(); };
+    #apply() {
+      this.#target.setAttribute('data-theme', this.resolved);
+      this.#target.setAttribute('data-theme-mode', this.#mode);
+    }
+    #notify() { this.#listeners.forEach(l => l(this.#mode, this.resolved)); }
+  }
+
+  const localStorageAdapter = (key) => ({
+    get: () => {
+      const v = localStorage.getItem(key);
+      return v === 'light' || v === 'dark' || v === 'auto' ? v : null;
+    },
+    set: (mode) => localStorage.setItem(key, mode),
+  });
+
   const root = document.documentElement;
   const btn = document.getElementById('themeToggle');
   const KEY = 'pinmark-theme';
 
-  const system = () => matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  const saved = localStorage.getItem(KEY);
-  root.setAttribute('data-theme', saved || system());
-
-  btn.addEventListener('click', () => {
-    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    localStorage.setItem(KEY, next);
+  const theme = new ThemeProvider({
+    target: root,
+    storage: localStorageAdapter(KEY),
   });
 
-  // follow OS only if user never picked one
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-    if (!localStorage.getItem(KEY)) {
-      root.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-    }
-  });
+  (async () => {
+    await theme.init();
+    if (btn) btn.dataset.mode = theme.mode;
+
+    theme.subscribe((mode) => {
+      if (btn) btn.dataset.mode = mode;
+    });
+
+    btn?.addEventListener('click', () => theme.cycle());
+  })();
 
   // ---------- select <code> on click ----------
   document.querySelectorAll('code').forEach(c => {

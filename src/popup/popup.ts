@@ -1,5 +1,7 @@
 import type { ExtensionSettings } from '../shared/types';
 import { sendMessage } from '../shared/messaging';
+import { ThemeProvider, type ThemeStorage, type ThemeMode } from '../shared/theme-provider';
+import { getSettings, saveSettings } from '../shared/storage';
 
 let currentTabId: number | null = null;
 let isActive = false;
@@ -15,7 +17,27 @@ const settingsInputs = {
   blockInteractions: document.getElementById('blockInteractions') as HTMLInputElement,
 };
 
+// Theme adapter backed by the ExtensionSettings.theme field (keeps it in
+// sync with the rest of the extension's settings).
+const settingsThemeStorage: ThemeStorage = {
+  async get() {
+    const s = await getSettings();
+    const t = s.theme;
+    return t === 'light' || t === 'dark' || t === 'auto' ? t : null;
+  },
+  async set(mode: ThemeMode) {
+    await saveSettings({ theme: mode });
+  },
+};
+
+const theme = new ThemeProvider({
+  storage: settingsThemeStorage,
+});
+
 async function init() {
+  await theme.init();
+  if (settingsInputs.theme) settingsInputs.theme.value = theme.mode;
+
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   currentTabId = tab.id || null;
 
@@ -77,7 +99,8 @@ settingsInputs.outputDetail?.addEventListener('change', async (e) => {
 });
 
 settingsInputs.theme?.addEventListener('change', async (e) => {
-  await saveSetting('theme', (e.target as HTMLSelectElement).value);
+  const mode = (e.target as HTMLSelectElement).value as ThemeMode;
+  await theme.set(mode);
 });
 
 settingsInputs.clearAfterCopy?.addEventListener('change', async (e) => {
