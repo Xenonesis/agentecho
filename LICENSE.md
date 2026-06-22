@@ -69,9 +69,9 @@ royalty-free, non-exclusive license to the following:
 
 ---
 
-## Application to AgentEcho
+## Application to Pinmark
 
-**License Summary for AgentEcho:**
+**License Summary for Pinmark:**
 
 **PERMITTED (Free):**
 - Personal use and testing
@@ -87,7 +87,7 @@ royalty-free, non-exclusive license to the following:
 - Using the extension in revenue-generating products
 
 **Commercial Licensing:**
-The copyright holder (Areshk) reserves the right to distribute AgentEcho commercially,
+The copyright holder (Areshk) reserves the right to distribute Pinmark commercially,
 including sales on the Chrome Web Store and other commercial channels. For commercial
 licensing inquiries, please contact the copyright holder directly.
 

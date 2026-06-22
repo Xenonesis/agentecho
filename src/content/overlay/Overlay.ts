@@ -8,7 +8,7 @@ import type { FeedbackManager } from '../feedback/FeedbackManager';
 import { sendMessage } from '../../shared/messaging';
 
 const OVERLAY_STYLES = `
-  .agentecho-overlay-container {
+  .pinmark-overlay-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -18,12 +18,12 @@ const OVERLAY_STYLES = `
     z-index: 2147483647;
   }
 
-  .agentecho-overlay-container.blocking {
+  .pinmark-overlay-container.blocking {
     pointer-events: all;
     cursor: crosshair;
   }
 
-  .agentecho-block-overlay {
+  .pinmark-block-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -57,7 +57,7 @@ export class Overlay {
     this.feedbackManager = feedbackManager;
 
     this.container = document.createElement('div');
-    this.container.className = 'agentecho-overlay-container';
+    this.container.className = 'pinmark-overlay-container';
     this.shadowRoot = this.container.attachShadow({ mode: 'open' });
 
     const style = document.createElement('style');
@@ -245,7 +245,7 @@ export class Overlay {
     this.container.classList.add('blocking');
     if (!this.blockOverlay) {
       this.blockOverlay = document.createElement('div');
-      this.blockOverlay.className = 'agentecho-block-overlay';
+      this.blockOverlay.className = 'pinmark-block-overlay';
       this.shadowRoot.appendChild(this.blockOverlay);
     }
   }

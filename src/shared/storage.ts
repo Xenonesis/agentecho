@@ -1,13 +1,13 @@
 import type { ExtensionSettings, FeedbackItem } from './types';
 
-const SETTINGS_KEY = 'agentecho_settings';
+const SETTINGS_KEY = 'pinmark_settings';
 
 export function getStorageKeyForUrl(url: string): string {
   try {
     const urlObj = new URL(url);
-    return `agentecho_feedback_${urlObj.origin}${urlObj.pathname}`;
+    return `pinmark_feedback_${urlObj.origin}${urlObj.pathname}`;
   } catch {
-    return `agentecho_feedback_${url}`;
+    return `pinmark_feedback_${url}`;
   }
 }
 

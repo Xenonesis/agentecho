@@ -1,5 +1,5 @@
 const MODAL_STYLES = `
-  .agentecho-modal-overlay {
+  .pinmark-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -13,7 +13,7 @@ const MODAL_STYLES = `
     pointer-events: all;
   }
 
-  .agentecho-modal {
+  .pinmark-modal {
     background: #1f2937;
     border-radius: 12px;
     padding: 24px;
@@ -23,14 +23,14 @@ const MODAL_STYLES = `
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
-  .agentecho-modal-title {
+  .pinmark-modal-title {
     color: #f9fafb;
     font-size: 18px;
     font-weight: 600;
     margin: 0 0 16px 0;
   }
 
-  .agentecho-modal-input {
+  .pinmark-modal-input {
     width: 100%;
     padding: 12px 14px;
     border: 1px solid #374151;
@@ -46,22 +46,22 @@ const MODAL_STYLES = `
     font-family: inherit;
   }
 
-  .agentecho-modal-input:focus {
+  .pinmark-modal-input:focus {
     border-color: #3b82f6;
   }
 
-  .agentecho-modal-input::placeholder {
+  .pinmark-modal-input::placeholder {
     color: #6b7280;
   }
 
-  .agentecho-modal-actions {
+  .pinmark-modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
     margin-top: 16px;
   }
 
-  .agentecho-modal-btn {
+  .pinmark-modal-btn {
     padding: 10px 18px;
     border: none;
     border-radius: 6px;
@@ -71,30 +71,30 @@ const MODAL_STYLES = `
     transition: background-color 0.15s ease, opacity 0.15s ease;
   }
 
-  .agentecho-modal-btn:disabled {
+  .pinmark-modal-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
 
-  .agentecho-modal-btn.cancel {
+  .pinmark-modal-btn.cancel {
     background: #374151;
     color: #f9fafb;
   }
 
-  .agentecho-modal-btn.cancel:hover:not(:disabled) {
+  .pinmark-modal-btn.cancel:hover:not(:disabled) {
     background: #4b5563;
   }
 
-  .agentecho-modal-btn.submit {
+  .pinmark-modal-btn.submit {
     background: #3b82f6;
     color: white;
   }
 
-  .agentecho-modal-btn.submit:hover:not(:disabled) {
+  .pinmark-modal-btn.submit:hover:not(:disabled) {
     background: #2563eb;
   }
 
-  .agentecho-modal-element-info {
+  .pinmark-modal-element-info {
     background: #111827;
     border-radius: 6px;
     padding: 10px 12px;
@@ -107,15 +107,15 @@ const MODAL_STYLES = `
     white-space: nowrap;
   }
 
-  .agentecho-modal-element-tag {
+  .pinmark-modal-element-tag {
     color: #f472b6;
   }
 
-  .agentecho-modal-element-class {
+  .pinmark-modal-element-class {
     color: #60a5fa;
   }
 
-  .agentecho-modal-element-id {
+  .pinmark-modal-element-id {
     color: #fbbf24;
   }
 `;
@@ -133,10 +133,10 @@ export class FeedbackModal {
   }
 
   private injectStyles() {
-    let styleElement = this.shadowRoot.querySelector('#agentecho-modal-styles');
+    let styleElement = this.shadowRoot.querySelector('#pinmark-modal-styles');
     if (!styleElement) {
       styleElement = document.createElement('style');
-      styleElement.id = 'agentecho-modal-styles';
+      styleElement.id = 'pinmark-modal-styles';
       this.shadowRoot.appendChild(styleElement);
     }
     (styleElement as HTMLStyleElement).textContent = MODAL_STYLES;
@@ -152,7 +152,7 @@ export class FeedbackModal {
   private render(element: HTMLElement, existingComment?: string) {
     // Create overlay
     this.modalOverlay = document.createElement('div');
-    this.modalOverlay.className = 'agentecho-modal-overlay';
+    this.modalOverlay.className = 'pinmark-modal-overlay';
     this.modalOverlay.onclick = (e) => {
       if (e.target === this.modalOverlay) {
         this.close(null);
@@ -161,35 +161,35 @@ export class FeedbackModal {
 
     // Create modal
     const modal = document.createElement('div');
-    modal.className = 'agentecho-modal';
+    modal.className = 'pinmark-modal';
 
     // Title
     const title = document.createElement('h3');
-    title.className = 'agentecho-modal-title';
+    title.className = 'pinmark-modal-title';
     title.textContent = existingComment ? 'Edit Feedback' : 'Add Feedback';
 
     // Element info
     const elementInfo = document.createElement('div');
-    elementInfo.className = 'agentecho-modal-element-info';
+    elementInfo.className = 'pinmark-modal-element-info';
     elementInfo.innerHTML = this.formatElementInfo(element);
 
     // Input
     const input = document.createElement('textarea');
-    input.className = 'agentecho-modal-input';
+    input.className = 'pinmark-modal-input';
     input.placeholder = 'Enter your feedback...';
     input.value = existingComment || '';
 
     // Actions
     const actions = document.createElement('div');
-    actions.className = 'agentecho-modal-actions';
+    actions.className = 'pinmark-modal-actions';
 
     const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'agentecho-modal-btn cancel';
+    cancelBtn.className = 'pinmark-modal-btn cancel';
     cancelBtn.textContent = 'Cancel';
     cancelBtn.onclick = () => this.close(null);
 
     const submitBtn = document.createElement('button');
-    submitBtn.className = 'agentecho-modal-btn submit';
+    submitBtn.className = 'pinmark-modal-btn submit';
     submitBtn.textContent = existingComment ? 'Save' : 'Add';
     submitBtn.onclick = () => {
       const comment = input.value.trim();
@@ -231,12 +231,12 @@ export class FeedbackModal {
 
   private formatElementInfo(element: HTMLElement): string {
     const tag = element.tagName.toLowerCase();
-    const id = element.id ? `<span class="agentecho-modal-element-id">#${element.id}</span>` : '';
+    const id = element.id ? `<span class="pinmark-modal-element-id">#${element.id}</span>` : '';
     const classes = element.className && typeof element.className === 'string'
-      ? element.className.split(' ').filter(c => c && !c.startsWith('agentecho')).slice(0, 3).map(c => `<span class="agentecho-modal-element-class">.${c}</span>`).join('')
+      ? element.className.split(' ').filter(c => c && !c.startsWith('pinmark')).slice(0, 3).map(c => `<span class="pinmark-modal-element-class">.${c}</span>`).join('')
       : '';
     
-    return `<span class="agentecho-modal-element-tag">&lt;${tag}&gt;</span>${id}${classes}`;
+    return `<span class="pinmark-modal-element-tag">&lt;${tag}&gt;</span>${id}${classes}`;
   }
 
   private close(result: ModalResult) {

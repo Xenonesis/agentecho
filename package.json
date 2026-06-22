@@ -1,17 +1,17 @@
 {
-  "name": "agentecho",
+  "name": "pinmark",
   "version": "1.0.0",
   "description": "Visual feedback annotation tool for developers to place markers on DOM elements and generate AI-optimized Markdown",
   "type": "module",
   "license": "Polyform-Noncommercial-1.0.0",
   "author": "Areshk",
-  "homepage": "https://github.com/Xenonesis/agentecho#readme",
+  "homepage": "https://github.com/Xenonesis/pinmark#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Xenonesis/agentecho.git"
+    "url": "git+https://github.com/Xenonesis/pinmark.git"
   },
   "bugs": {
-    "url": "https://github.com/Xenonesis/agentecho/issues"
+    "url": "https://github.com/Xenonesis/pinmark/issues"
   },
   "scripts": {
     "dev": "vite",

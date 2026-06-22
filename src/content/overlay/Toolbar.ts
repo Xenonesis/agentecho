@@ -1,7 +1,7 @@
 import type { ExtensionSettings } from '../../shared/types';
 
 const TOOLBAR_STYLES = `
-  .agentecho-toolbar {
+  .pinmark-toolbar {
     position: fixed;
     top: 16px;
     left: calc(100vw - 320px);
@@ -18,7 +18,7 @@ const TOOLBAR_STYLES = `
     user-select: none;
   }
 
-  .agentecho-toolbar-btn {
+  .pinmark-toolbar-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -33,24 +33,24 @@ const TOOLBAR_STYLES = `
     transition: all 0.15s ease-out;
   }
 
-  .agentecho-toolbar-btn:hover {
+  .pinmark-toolbar-btn:hover {
     background: #4b5563;
   }
 
-  .agentecho-toolbar-btn:active {
+  .pinmark-toolbar-btn:active {
     transform: scale(0.95);
   }
 
-  .agentecho-toolbar-btn svg {
+  .pinmark-toolbar-btn svg {
     width: 18px;
     height: 18px;
   }
 
-  .agentecho-toolbar-btn.active {
+  .pinmark-toolbar-btn.active {
     background: #3b82f6;
   }
 
-  .agentecho-toolbar-label {
+  .pinmark-toolbar-label {
     color: #f9fafb;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 13px;
@@ -58,7 +58,7 @@ const TOOLBAR_STYLES = `
     padding: 0 8px;
   }
 
-  .agentecho-toolbar-divider {
+  .pinmark-toolbar-divider {
     width: 1px;
     height: 24px;
     background: #4b5563;
@@ -150,7 +150,7 @@ export class Toolbar {
 
   private createToolbar(): HTMLElement {
     const toolbar = document.createElement('div');
-    toolbar.className = 'agentecho-toolbar';
+    toolbar.className = 'pinmark-toolbar';
 
     const pauseBtn = this.createButton('pause', 'Pause');
     pauseBtn.onclick = () => {
@@ -166,7 +166,7 @@ export class Toolbar {
     };
 
     const divider1 = document.createElement('div');
-    divider1.className = 'agentecho-toolbar-divider';
+    divider1.className = 'pinmark-toolbar-divider';
 
     const copyBtn = this.createButton('copy', 'Copy to clipboard');
     copyBtn.onclick = () => this.onCopy?.();
@@ -175,7 +175,7 @@ export class Toolbar {
     clearBtn.onclick = () => this.onClear?.();
 
     const divider2 = document.createElement('div');
-    divider2.className = 'agentecho-toolbar-divider';
+    divider2.className = 'pinmark-toolbar-divider';
 
     // const exitBtn = this.createButton('exit', 'Exit');
     // exitBtn.onclick = () => this.onExit?.();
@@ -193,7 +193,7 @@ export class Toolbar {
 
   private createButton(iconKey: keyof typeof ICONS, title: string): HTMLButtonElement {
     const btn = document.createElement('button');
-    btn.className = 'agentecho-toolbar-btn';
+    btn.className = 'pinmark-toolbar-btn';
     btn.title = title;
     btn.innerHTML = ICONS[iconKey];
     return btn;
@@ -201,7 +201,7 @@ export class Toolbar {
 
   setPaused(paused: boolean) {
     this.isPaused = paused;
-    const pauseBtn = this.element.querySelector('.agentecho-toolbar-btn:first-child') as HTMLButtonElement;
+    const pauseBtn = this.element.querySelector('.pinmark-toolbar-btn:first-child') as HTMLButtonElement;
     if (pauseBtn) {
       pauseBtn.innerHTML = paused ? ICONS.play : ICONS.pause;
       pauseBtn.title = paused ? 'Resume' : 'Pause';
@@ -210,7 +210,7 @@ export class Toolbar {
 
   setMarkersVisible(visible: boolean) {
     this.markersVisible = visible;
-    const eyeBtn = this.element.querySelector('.agentecho-toolbar-btn:nth-child(2)') as HTMLButtonElement;
+    const eyeBtn = this.element.querySelector('.pinmark-toolbar-btn:nth-child(2)') as HTMLButtonElement;
     if (eyeBtn) {
       eyeBtn.innerHTML = visible ? ICONS.eye : ICONS.eyeOff;
       if (visible) {
@@ -230,7 +230,7 @@ export class Toolbar {
   }
 
   showCopySuccess() {
-    const copyBtn = this.element.querySelector('.agentecho-toolbar-btn:nth-child(4)') as HTMLButtonElement;
+    const copyBtn = this.element.querySelector('.pinmark-toolbar-btn:nth-child(4)') as HTMLButtonElement;
     if (copyBtn) {
       const originalIcon = copyBtn.innerHTML;
       copyBtn.innerHTML = ICONS.check;

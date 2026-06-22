@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="assets/logo-text.jpg" alt="AgentEcho Logo" width="400">
+  <img src="assets/logo-text.jpg" alt="Pinmark Logo" width="400">
 
   **Visual feedback annotation tool for developers**
 
@@ -20,7 +20,7 @@
 
 <div align="center">
 
-  ![AgentEcho Demo](assets/demo.gif)
+  ![Pinmark Demo](assets/demo.gif)
 
   *Hover to highlight elements, click to add feedback*
 
@@ -69,12 +69,12 @@
 
 ### From Source (Free)
 
-If you're comfortable building from source, you can use AgentEcho completely free:
+If you're comfortable building from source, you can use Pinmark completely free:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/agentecho.git
-   cd agentecho
+   git clone https://github.com/yourusername/pinmark.git
+   cd pinmark
    ```
 
 2. **Install dependencies**
@@ -99,7 +99,7 @@ If you're comfortable building from source, you can use AgentEcho completely fre
 
 ### Basic Workflow
 
-1. **Click the extension icon** in your browser toolbar to open AgentEcho
+1. **Click the extension icon** in your browser toolbar to open Pinmark
 2. **Click "Activate"** to enable annotation on the current page
 3. **Hover** over any element to see the blue highlight box
 4. **Click** an element to place a marker
@@ -128,7 +128,7 @@ If you're comfortable building from source, you can use AgentEcho completely fre
 ### Example Output
 
 ```markdown
-# AgentEcho Feedback Report
+# Pinmark Feedback Report
 
 **URL:** https://example.com/dashboard
 **Captured:** 2026-01-21 20:15:00
@@ -183,7 +183,7 @@ npm run build  # Includes tsc compilation
 ### Project Structure
 
 ```
-agentecho/
+pinmark/
 ├── manifest.json              # Chrome extension manifest
 ├── src/
 │   ├── background/           # Service worker (message broker)
@@ -244,7 +244,7 @@ This project is source-available but not open-source software.
 [Read full license text](LICENSE.md)
 
 > **Why this license?**
-> AgentEcho is free to build and use for developers who want to compile from source. Purchasing from the Chrome Web Store for $2 supports continued development, covers hosting costs, and provides an easy, pre-built installation option. Think of it as a "buy me a coffee" model for convenience.
+> Pinmark is free to build and use for developers who want to compile from source. Purchasing from the Chrome Web Store for $2 supports continued development, covers hosting costs, and provides an easy, pre-built installation option. Think of it as a "buy me a coffee" model for convenience.
 
 ---
 

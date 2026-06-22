@@ -6,7 +6,7 @@ export interface MarkerCallbacks {
 }
 
 const MARKER_STYLES = (color: string) => `
-  .agentecho-markers-container {
+  .pinmark-markers-container {
     position: absolute;
     top: 0;
     left: 0;
@@ -14,7 +14,7 @@ const MARKER_STYLES = (color: string) => `
     z-index: 2147483645;
   }
 
-  .agentecho-marker {
+  .pinmark-marker {
     position: absolute;
     width: 28px;
     height: 28px;
@@ -34,17 +34,17 @@ const MARKER_STYLES = (color: string) => `
     user-select: none;
   }
 
-  .agentecho-marker:hover {
+  .pinmark-marker:hover {
     transform: scale(1.15);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
 
-  .agentecho-marker.hidden {
+  .pinmark-marker.hidden {
     opacity: 0;
     pointer-events: none;
   }
 
-  .agentecho-marker-popup {
+  .pinmark-marker-popup {
     position: absolute;
     bottom: calc(100% + 8px);
     left: 50%;
@@ -62,7 +62,7 @@ const MARKER_STYLES = (color: string) => `
     z-index: 2147483646;
   }
 
-  .agentecho-marker-popup::after {
+  .pinmark-marker-popup::after {
     content: '';
     position: absolute;
     top: 100%;
@@ -72,13 +72,13 @@ const MARKER_STYLES = (color: string) => `
     border-top-color: #1f2937;
   }
 
-  .agentecho-marker:hover .agentecho-marker-popup {
+  .pinmark-marker:hover .pinmark-marker-popup {
     opacity: 1;
     visibility: visible;
     pointer-events: all;
   }
 
-  .agentecho-marker-comment {
+  .pinmark-marker-comment {
     color: #f3f4f6;
     font-size: 13px;
     line-height: 1.4;
@@ -87,14 +87,14 @@ const MARKER_STYLES = (color: string) => `
     white-space: pre-wrap;
   }
 
-  .agentecho-marker-actions {
+  .pinmark-marker-actions {
     display: flex;
     gap: 6px;
     border-top: 1px solid #374151;
     padding-top: 10px;
   }
 
-  .agentecho-marker-btn {
+  .pinmark-marker-btn {
     flex: 1;
     padding: 6px 10px;
     font-size: 12px;
@@ -107,19 +107,19 @@ const MARKER_STYLES = (color: string) => `
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
-  .agentecho-marker-btn.edit {
+  .pinmark-marker-btn.edit {
     background: #3b82f6;
   }
 
-  .agentecho-marker-btn.edit:hover {
+  .pinmark-marker-btn.edit:hover {
     background: #2563eb;
   }
 
-  .agentecho-marker-btn.delete {
+  .pinmark-marker-btn.delete {
     background: #ef4444;
   }
 
-  .agentecho-marker-btn.delete:hover {
+  .pinmark-marker-btn.delete:hover {
     background: #dc2626;
   }
 `;
@@ -139,17 +139,17 @@ export class MarkerManager {
     
     // Create container for markers
     this.container = document.createElement('div');
-    this.container.className = 'agentecho-markers-container';
+    this.container.className = 'pinmark-markers-container';
     this.shadowRoot.appendChild(this.container);
     
     this.injectStyles();
   }
 
   private injectStyles() {
-    let styleElement = this.shadowRoot.querySelector('#agentecho-marker-styles');
+    let styleElement = this.shadowRoot.querySelector('#pinmark-marker-styles');
     if (!styleElement) {
       styleElement = document.createElement('style');
-      styleElement.id = 'agentecho-marker-styles';
+      styleElement.id = 'pinmark-marker-styles';
       this.shadowRoot.appendChild(styleElement);
     }
     (styleElement as HTMLStyleElement).textContent = MARKER_STYLES(this.settings.markerColor);
@@ -161,7 +161,7 @@ export class MarkerManager {
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
     const marker = document.createElement('div');
-    marker.className = 'agentecho-marker';
+    marker.className = 'pinmark-marker';
     marker.dataset.feedbackId = feedback.id;
     marker.textContent = feedback.index.toString();
     marker.style.top = `${rect.top + scrollTop - 14}px`;
@@ -169,19 +169,19 @@ export class MarkerManager {
 
     // Create popup container
     const popup = document.createElement('div');
-    popup.className = 'agentecho-marker-popup';
+    popup.className = 'pinmark-marker-popup';
 
     // Comment text
     const commentEl = document.createElement('div');
-    commentEl.className = 'agentecho-marker-comment';
+    commentEl.className = 'pinmark-marker-comment';
     commentEl.textContent = feedback.comment;
 
     // Actions container
     const actions = document.createElement('div');
-    actions.className = 'agentecho-marker-actions';
+    actions.className = 'pinmark-marker-actions';
 
     const editBtn = document.createElement('button');
-    editBtn.className = 'agentecho-marker-btn edit';
+    editBtn.className = 'pinmark-marker-btn edit';
     editBtn.textContent = 'Edit';
     editBtn.onclick = (e) => {
       e.stopPropagation();
@@ -190,7 +190,7 @@ export class MarkerManager {
     };
 
     const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'agentecho-marker-btn delete';
+    deleteBtn.className = 'pinmark-marker-btn delete';
     deleteBtn.textContent = 'Delete';
     deleteBtn.onclick = (e) => {
       e.stopPropagation();

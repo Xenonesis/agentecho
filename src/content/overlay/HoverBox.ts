@@ -1,5 +1,5 @@
 const HOVER_BOX_STYLES = `
-  .agentecho-hover-box {
+  .pinmark-hover-box {
     position: absolute;
     border: 2px solid #3b82f6;
     background-color: rgba(59, 130, 246, 0.1);
@@ -15,7 +15,7 @@ export class HoverBox {
 
   constructor(shadowRoot: ShadowRoot) {
     this.element = document.createElement('div');
-    this.element.className = 'agentecho-hover-box';
+    this.element.className = 'pinmark-hover-box';
 
     const style = document.createElement('style');
     style.textContent = HOVER_BOX_STYLES;
