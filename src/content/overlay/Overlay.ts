@@ -264,6 +264,18 @@ export class Overlay {
     this.toolbar.onMarkersToggle = () => this.toggleMarkers();
     this.toolbar.onCopy = () => this.copyFeedback();
     this.toolbar.onClear = () => this.clearAll();
+    this.toolbar.onSettingsClick = () => {
+      try {
+        if (typeof (window as any).chrome !== 'undefined' && (window as any).chrome.runtime) {
+          (window as any).chrome.runtime.sendMessage({ type: 'OPEN_SETTINGS' });
+        } else {
+          console.warn('[Pinmark] Cannot open settings: not running as an extension');
+        }
+      } catch (e) {
+        console.warn('[Pinmark] Cannot open settings:', e);
+      }
+    };
+    this.toolbar.onExitClick = () => this.deactivate();
   }
 
   public loadExistingMarkers() {

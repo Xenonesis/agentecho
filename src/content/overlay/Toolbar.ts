@@ -7,72 +7,104 @@ const TOOLBAR_STYLES = `
     left: calc(100vw - 320px);
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px;
-    background: var(--pmk-bg);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    gap: 4px;
+    padding: 6px;
+    background: #1C1C1C;
+    border-radius: 999px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08);
     z-index: 2147483646;
     pointer-events: all;
     cursor: move;
     user-select: none;
+    transition: transform 0.2s ease;
+  }
+
+  .pinmark-toolbar:hover {
+    transform: scale(1.02);
   }
 
   .pinmark-toolbar-btn {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     border: none;
-    border-radius: 6px;
-    background: var(--pmk-bg-3);
-    color: var(--pmk-text);
+    border-radius: 50%;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
     cursor: pointer;
-    transition: all 0.15s ease-out;
+    transition: all 0.2s ease;
   }
 
   .pinmark-toolbar-btn:hover {
-    background: var(--pmk-border);
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
   }
 
   .pinmark-toolbar-btn:active {
     transform: scale(0.95);
   }
 
-  .pinmark-toolbar-btn svg {
-    width: 18px;
-    height: 18px;
-  }
-
   .pinmark-toolbar-btn.active {
-    background: var(--pmk-accent);
+    background: rgba(59, 130, 246, 0.25);
+    color: #3b82f6;
   }
 
-  .pinmark-toolbar-label {
-    color: var(--pmk-text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 0 8px;
+  .pinmark-toolbar-btn svg {
+    width: 16px;
+    height: 16px;
   }
 
   .pinmark-toolbar-divider {
     width: 1px;
-    height: 24px;
-    background: var(--pmk-bg-3);
+    height: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 0 4px;
+  }
+
+  .pinmark-tooltip {
+    position: absolute;
+    top: -30px;
+    background: #111;
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: all 0.15s ease;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  .pinmark-toolbar-btn:hover .pinmark-tooltip {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .pinmark-toolbar-btn.exit-btn {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .pinmark-toolbar-btn.exit-btn:hover {
+    background: rgba(255, 60, 60, 0.2);
+    color: #ff4444;
   }
 `;
 
 const ICONS = {
-  pause: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>`,
-  play: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`,
-  eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
-  eyeOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`,
-  copy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
+  pause: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`,
+  play: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+  eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  eyeOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`,
+  copy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
-  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2-2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2-2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
+  settings: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+  exit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
 };
 
 export class Toolbar {
@@ -84,6 +116,8 @@ export class Toolbar {
   onMarkersToggle?: () => void;
   onCopy?: () => void;
   onClear?: () => void;
+  onSettingsClick?: () => void;
+  onExitClick?: () => void;
 
   constructor(shadowRoot: ShadowRoot) {
     const style = document.createElement('style');
@@ -179,12 +213,30 @@ export class Toolbar {
     const divider2 = document.createElement('div');
     divider2.className = 'pinmark-toolbar-divider';
 
+    const settingsBtn = this.createButton('settings', 'Settings', 'settings');
+    settingsBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.onSettingsClick?.();
+    };
+
+    const divider3 = document.createElement('div');
+    divider3.className = 'pinmark-toolbar-divider';
+
+    const exitBtn = this.createButton('exit', 'Exit [Esc]', 'exit');
+    exitBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.onExitClick?.();
+    };
+
     toolbar.appendChild(pauseBtn);
     toolbar.appendChild(eyeBtn);
     toolbar.appendChild(divider1);
     toolbar.appendChild(copyBtn);
     toolbar.appendChild(clearBtn);
     toolbar.appendChild(divider2);
+    toolbar.appendChild(settingsBtn);
+    toolbar.appendChild(divider3);
+    toolbar.appendChild(exitBtn);
 
     return toolbar;
   }
@@ -192,9 +244,22 @@ export class Toolbar {
   private createButton(iconKey: keyof typeof ICONS, title: string, action: string): HTMLButtonElement {
     const btn = document.createElement('button');
     btn.className = 'pinmark-toolbar-btn';
-    btn.title = title;
+    if (action === 'exit') {
+      btn.classList.add('exit-btn');
+    }
     btn.dataset.action = action;
     btn.innerHTML = ICONS[iconKey];
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'pinmark-tooltip';
+    if (title.includes('[')) {
+      const parts = title.split('[');
+      tooltip.innerHTML = `${parts[0].trim()} <span style="opacity:0.6;font-size:10px;margin-left:4px">${parts[1].replace(']', '')}</span>`;
+    } else {
+      tooltip.textContent = title;
+    }
+    btn.appendChild(tooltip);
+
     return btn;
   }
 

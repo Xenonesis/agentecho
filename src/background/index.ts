@@ -67,6 +67,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'SAVE_FEEDBACK':
       saveFeedback(message.url, message.feedback).then(() => sendResponse({ success: true }));
       return true;
+
+    case 'OPEN_SETTINGS':
+      if (chrome.runtime.openOptionsPage) {
+        chrome.runtime.openOptionsPage();
+      } else {
+        window.open(chrome.runtime.getURL('popup/index.html'));
+      }
+      sendResponse({ success: true });
+      return true;
   }
 
   return false;
