@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Page not found — Pinmark</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #FAFAF9;
+  color: #0A0A0A;
+  padding: 24px;
+  text-align: center;
+}
+.card { max-width: 400px; }
+.pin {
+  width: 48px; height: 48px;
+  margin: 0 auto 20px;
+}
+.pin path { fill: #E11D48; }
+.pin circle { fill: #FFFFFF; }
+.pin .dot { fill: #4338CA; }
+h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+p {
+  font-size: 15px;
+  color: #404040;
+  line-height: 1.55;
+  margin-bottom: 24px;
+}
+a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid #0A0A0A;
+  background: #0A0A0A;
+  color: #FAFAF9;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background 160ms ease;
+}
+a:hover { background: #4338CA; border-color: #4338CA; }
+@media (prefers-color-scheme: dark) {
+  body { background: #0A0A0A; color: #FAFAF9; }
+  p { color: #D6D3D1; }
+  a { background: #FAFAF9; color: #0A0A0A; border-color: #FAFAF9; }
+  a:hover { background: #A5B4FC; border-color: #A5B4FC; color: #0A0A0A; }
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <svg class="pin" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M64 118 C64 118 102 82 102 50 C102 26 86 8 64 8 C42 8 26 26 26 50 C26 82 64 118 64 118 Z"/>
+    <circle cx="64" cy="48" r="14"/>
+    <circle class="dot" cx="64" cy="48" r="6"/>
+  </svg>
+  <h1>404</h1>
+  <p>The page you're looking for doesn't exist — or it may have moved. Pinmark is free, source-available, and definitely at the right URL below.</p>
+  <a href="https://xenonesis.github.io/Pinmark/">← Back to Pinmark</a>
+</div>
+</body>
+</html>
