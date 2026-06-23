@@ -89,14 +89,40 @@ async function saveSetting(key: keyof ExtensionSettings, value: unknown) {
 toggleBtn?.addEventListener('click', async () => {
   if (currentTabId === null) return;
 
-  const response = await sendMessage({ type: 'TOGGLE_EXTENSION', tabId: currentTabId }) as { isActive: boolean };
-  isActive = response.isActive;
-  updateToggleButton();
+  const prevState = isActive;
 
-  if (isActive) {
-    chrome.tabs.sendMessage(currentTabId, { type: 'ACTIVATE_OVERLAY' });
-  } else {
-    chrome.tabs.sendMessage(currentTabId, { type: 'DEACTIVATE_OVERLAY' });
+  try {
+    const response = await sendMessage({ type: 'TOGGLE_EXTENSION', tabId: currentTabId }) as { isActive: boolean };
+    isActive = response.isActive;
+    updateToggleButton();
+
+    if (isActive) {
+      try {
+        await chrome.tabs.sendMessage(currentTabId, { type: 'ACTIVATE_OVERLAY' });
+      } catch (msgError) {
+        // Content script not reachable — revert state and warn the user
+        await sendMessage({ type: 'TOGGLE_EXTENSION', tabId: currentTabId });
+        isActive = false;
+        updateToggleButton();
+        const status = document.getElementById('statusMsg');
+        if (status) {
+          status.textContent = '⚠ Could not activate — try refreshing the page or enabling file:// access in chrome://extensions';
+          status.style.display = 'block';
+          setTimeout(() => { status.style.display = 'none'; }, 5000);
+        }
+        return;
+      }
+      // Clear any previous error
+      const status = document.getElementById('statusMsg');
+      if (status) { status.style.display = 'none'; status.textContent = ''; }
+    } else {
+      chrome.tabs.sendMessage(currentTabId, { type: 'DEACTIVATE_OVERLAY' }).catch(() => {});
+    }
+  } catch (bgError) {
+    // Background not reachable
+    isActive = prevState;
+    updateToggleButton();
+    console.error('Toggle failed:', bgError);
   }
 });
 
