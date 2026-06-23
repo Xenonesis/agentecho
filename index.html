@@ -1989,6 +1989,143 @@ h3 {
 .license p { font-size: 14px; color: var(--ink-mid); margin-bottom: 12px; }
 .license p:last-child { margin-bottom: 0; }
 
+/* ---------- coming soon modal + soon links ---------- */
+.soon { position: relative; }
+.soon-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: var(--marker);
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 2px;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+.soon:hover { color: var(--marker); }
+
+.soon-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.soon-modal.is-open {
+  pointer-events: auto;
+  opacity: 1;
+}
+.soon-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+[data-theme="dark"] .soon-modal-backdrop {
+  background: color-mix(in srgb, #000 70%, transparent);
+}
+.soon-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  padding: 36px 32px 28px;
+  text-align: center;
+  transform: translateY(8px) scale(0.98);
+  transition: transform 220ms cubic-bezier(.2,.9,.3,1.2);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+}
+.soon-modal.is-open .soon-modal-card {
+  transform: translateY(0) scale(1);
+}
+.soon-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+.soon-modal-close:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.soon-modal-close svg { width: 14px; height: 14px; }
+.soon-modal-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  animation: soonBob 2.4s ease-in-out infinite;
+}
+@keyframes soonBob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .soon-modal-icon { animation: none; }
+}
+.soon-modal-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--marker);
+  border: 1px solid var(--marker);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+.soon-modal-card h3 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+.soon-modal-card p {
+  font-size: 14px;
+  color: var(--ink-mid);
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+.soon-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.soon-modal-actions .btn { width: 100%; justify-content: center; }
+.soon-modal-foot {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 /* ---------- footer ---------- */
 footer {
   padding: 48px 0;
@@ -2172,7 +2309,7 @@ footer a:hover { color: var(--ink); }
     <div class="hero-actions">
       <a class="btn btn-primary" href="#install">Install from source →</a>
       <a class="btn btn-ghost" href="https://github.com/Xenonesis/Pinmark" target="_blank" rel="noopener">View on GitHub</a>
-      <a class="btn btn-ghost" href="https://chromewebstore.google.com/detail/fdkdjnebmcmlhnbecbfefebpdhihdjjb" target="_blank" rel="noopener">Chrome Store ↗</a>
+      <a class="btn btn-ghost soon" href="#" data-soon aria-label="Chrome Web Store (coming soon)">Chrome Store <span class="soon-tag">soon</span></a>
     </div>
 
     <div class="hero-scene" aria-label="Interactive demo of Pinmark on a pricing page">
@@ -2886,10 +3023,35 @@ footer a:hover { color: var(--ink); }
     <div>
       <a href="https://github.com/Xenonesis/Pinmark" target="_blank" rel="noopener">GitHub</a>
       &nbsp;·&nbsp;
-      <a href="https://chromewebstore.google.com/detail/fdkdjnebmcmlhnbecbfefebpdhihdjjb" target="_blank" rel="noopener">Chrome Store</a>
+      <a href="#" class="soon" data-soon>Chrome Store</a>
     </div>
   </div>
 </footer>
+
+<!-- COMING SOON MODAL -->
+<div class="soon-modal" id="soonModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="soonModalTitle">
+  <div class="soon-modal-backdrop" data-soon-close></div>
+  <div class="soon-modal-card">
+    <button type="button" class="soon-modal-close" data-soon-close aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="soon-modal-icon" aria-hidden="true">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 59 C32 59 51 41 51 25 C51 13 44 4 32 4 C20 4 13 13 13 25 C13 41 32 59 32 59 Z" fill="var(--marker)"/>
+        <circle cx="32" cy="24" r="7" fill="var(--bg-elev)"/>
+        <circle cx="32" cy="24" r="3" fill="var(--accent)"/>
+      </svg>
+    </div>
+    <div class="soon-modal-tag">coming soon</div>
+    <h3 id="soonModalTitle">Pinmark is heading to the Chrome Web Store</h3>
+    <p>We're polishing the listing, screenshots, and review disclosures. In the meantime, you can build the extension from source in four commands — it's free, source-available, and works the same day.</p>
+    <div class="soon-modal-actions">
+      <a class="btn btn-primary" href="#install">Build from source →</a>
+      <a class="btn btn-ghost" href="https://github.com/Xenonesis/Pinmark" target="_blank" rel="noopener">Star on GitHub</a>
+    </div>
+    <p class="soon-modal-foot">Want to be notified when it goes live? Watch the repo on GitHub.</p>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -3126,6 +3288,44 @@ footer a:hover { color: var(--ink); }
         }
       });
     }
+  })();
+
+  // ---------- coming soon modal ----------
+  (() => {
+    const modal = document.getElementById('soonModal');
+    if (!modal) return;
+
+    const open = () => {
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      const focusable = modal.querySelector('.soon-modal-close');
+      if (focusable) focusable.focus();
+    };
+    const close = () => {
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    };
+    const isOpen = () => modal.classList.contains('is-open');
+
+    // Intercept all .soon / [data-soon] clicks
+    document.querySelectorAll('[data-soon], a.soon').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        open();
+      });
+    });
+
+    // Close on backdrop / close button
+    modal.querySelectorAll('[data-soon-close]').forEach(el => {
+      el.addEventListener('click', close);
+    });
+
+    // ESC closes
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && isOpen()) close();
+    });
   })();
 
   // ---------- repo stars (live, cached 1h) ----------
