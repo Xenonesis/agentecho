@@ -59,7 +59,8 @@ export class Overlay {
   private elementAnalyzer: ElementAnalyzer;
   private feedbackManager: FeedbackManager;
   private settings: ExtensionSettings;
-  public isActive = false;
+  private _isActive = false;
+  get isActive() { return this._isActive; }
   private isPaused = false;
   private markersVisible = true;
   private targetElement: HTMLElement | null = null;
@@ -85,7 +86,7 @@ export class Overlay {
       onDelete: (id) => this.handleDeleteFeedback(id),
       onCopy: (id) => this.handleCopyFeedback(id),
     });
-    this.toolbar = new Toolbar(this.shadowRoot, settings);
+    this.toolbar = new Toolbar(this.shadowRoot);
     this.feedbackModal = new FeedbackModal(this.shadowRoot);
     this.elementAnalyzer = new ElementAnalyzer();
 
@@ -263,7 +264,6 @@ export class Overlay {
     this.toolbar.onMarkersToggle = () => this.toggleMarkers();
     this.toolbar.onCopy = () => this.copyFeedback();
     this.toolbar.onClear = () => this.clearAll();
-    this.toolbar.onExit = () => this.deactivate();
   }
 
   public loadExistingMarkers() {
@@ -291,7 +291,7 @@ export class Overlay {
   }
 
   activate() {
-    this.isActive = true;
+    this._isActive = true;
     document.body.appendChild(this.container);
     window.addEventListener('resize', this.handleResize);
     // Initial update to fix position if layout changed since save
@@ -305,7 +305,7 @@ export class Overlay {
   }
 
   deactivate() {
-    this.isActive = false;
+    this._isActive = false;
     this.removeEventListeners();
     window.removeEventListener('resize', this.handleResize);
     this.container.remove();

@@ -30,28 +30,41 @@ function deactivateOverlay() {
   feedbackManager = null;
 }
 
+let isHandlingUrlChange = false;
+
 async function handleUrlChange() {
-  // Wait for the URL to actually update
-  await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
+  if (isHandlingUrlChange) return;
+  isHandlingUrlChange = true;
 
-  const newUrl = window.location.href;
+  try {
+    // Wait for the URL to actually update
+    await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
 
-  // Only reload if URL actually changed and overlay exists
-  if (newUrl !== currentUrl && overlay) {
-    currentUrl = newUrl;
+    const newUrl = window.location.href;
 
-    // Clear old markers and feedback
-    overlay.clearAllMarkers();
+    // Only reload if URL actually changed and overlay exists
+    if (newUrl !== currentUrl && overlay) {
+      currentUrl = newUrl;
 
-    // Load feedback for new URL
-    const feedback = await getFeedback(newUrl);
-    feedbackManager = new FeedbackManager(newUrl, feedback);
+      // Clear old markers and feedback
+      overlay.clearAllMarkers();
 
-    // Update overlay with new feedback manager
-    overlay.updateFeedbackManager(feedbackManager);
+      // Load feedback for new URL
+      const feedback = await getFeedback(newUrl);
+      
+      // If overlay was deactivated during await, abort
+      if (!overlay) return;
 
-    // Load existing markers for new URL
-    overlay.loadExistingMarkers();
+      feedbackManager = new FeedbackManager(newUrl, feedback);
+
+      // Update overlay with new feedback manager
+      overlay.updateFeedbackManager(feedbackManager);
+
+      // Load existing markers for new URL
+      overlay.loadExistingMarkers();
+    }
+  } finally {
+    isHandlingUrlChange = false;
   }
 }
 

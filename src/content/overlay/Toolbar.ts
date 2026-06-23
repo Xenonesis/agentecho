@@ -1,4 +1,4 @@
-import type { ExtensionSettings } from '../../shared/types';
+
 
 const TOOLBAR_STYLES = `
   .pinmark-toolbar {
@@ -34,7 +34,7 @@ const TOOLBAR_STYLES = `
   }
 
   .pinmark-toolbar-btn:hover {
-    background: #4b5563;
+    background: var(--pmk-border);
   }
 
   .pinmark-toolbar-btn:active {
@@ -72,8 +72,7 @@ const ICONS = {
   eyeOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`,
   copy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
-  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
-  // exit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2-2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
 };
 
 export class Toolbar {
@@ -85,9 +84,8 @@ export class Toolbar {
   onMarkersToggle?: () => void;
   onCopy?: () => void;
   onClear?: () => void;
-  onExit?: () => void;
 
-  constructor(shadowRoot: ShadowRoot, _settings: ExtensionSettings) {
+  constructor(shadowRoot: ShadowRoot) {
     const style = document.createElement('style');
     style.textContent = TOOLBAR_STYLES;
     shadowRoot.appendChild(style);
@@ -108,7 +106,6 @@ export class Toolbar {
     let yOffset = 0;
 
     const dragStart = (e: MouseEvent) => {
-      // Don't start dragging if clicking a button
       if ((e.target as HTMLElement).closest('button')) return;
 
       initialX = e.clientX - xOffset;
@@ -128,13 +125,10 @@ export class Toolbar {
     const drag = (e: MouseEvent) => {
       if (isDragging) {
         e.preventDefault();
-        
         currentX = e.clientX - initialX;
         currentY = e.clientY - initialY;
-
         xOffset = currentX;
         yOffset = currentY;
-
         this.setTranslate(currentX, currentY, this.element);
       }
     };
@@ -152,15 +146,17 @@ export class Toolbar {
     const toolbar = document.createElement('div');
     toolbar.className = 'pinmark-toolbar';
 
-    const pauseBtn = this.createButton('pause', 'Pause');
-    pauseBtn.onclick = () => {
+    const pauseBtn = this.createButton('pause', 'Pause', 'pause');
+    pauseBtn.onclick = (e) => {
+      e.stopPropagation();
       this.togglePause();
       this.onPauseToggle?.();
     };
 
-    const eyeBtn = this.createButton('eye', 'Toggle markers');
+    const eyeBtn = this.createButton('eye', 'Toggle markers', 'markers');
     eyeBtn.classList.add('active');
-    eyeBtn.onclick = () => {
+    eyeBtn.onclick = (e) => {
+      e.stopPropagation();
       this.toggleMarkers();
       this.onMarkersToggle?.();
     };
@@ -168,17 +164,20 @@ export class Toolbar {
     const divider1 = document.createElement('div');
     divider1.className = 'pinmark-toolbar-divider';
 
-    const copyBtn = this.createButton('copy', 'Copy to clipboard');
-    copyBtn.onclick = () => this.onCopy?.();
+    const copyBtn = this.createButton('copy', 'Copy to clipboard', 'copy');
+    copyBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.onCopy?.();
+    };
 
-    const clearBtn = this.createButton('trash', 'Clear all');
-    clearBtn.onclick = () => this.onClear?.();
+    const clearBtn = this.createButton('trash', 'Clear all', 'clear');
+    clearBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.onClear?.();
+    };
 
     const divider2 = document.createElement('div');
     divider2.className = 'pinmark-toolbar-divider';
-
-    // const exitBtn = this.createButton('exit', 'Exit');
-    // exitBtn.onclick = () => this.onExit?.();
 
     toolbar.appendChild(pauseBtn);
     toolbar.appendChild(eyeBtn);
@@ -186,22 +185,22 @@ export class Toolbar {
     toolbar.appendChild(copyBtn);
     toolbar.appendChild(clearBtn);
     toolbar.appendChild(divider2);
-    // toolbar.appendChild(exitBtn);
 
     return toolbar;
   }
 
-  private createButton(iconKey: keyof typeof ICONS, title: string): HTMLButtonElement {
+  private createButton(iconKey: keyof typeof ICONS, title: string, action: string): HTMLButtonElement {
     const btn = document.createElement('button');
     btn.className = 'pinmark-toolbar-btn';
     btn.title = title;
+    btn.dataset.action = action;
     btn.innerHTML = ICONS[iconKey];
     return btn;
   }
 
   setPaused(paused: boolean) {
     this.isPaused = paused;
-    const pauseBtn = this.element.querySelector('.pinmark-toolbar-btn:first-child') as HTMLButtonElement;
+    const pauseBtn = this.element.querySelector('[data-action="pause"]') as HTMLButtonElement;
     if (pauseBtn) {
       pauseBtn.innerHTML = paused ? ICONS.play : ICONS.pause;
       pauseBtn.title = paused ? 'Resume' : 'Pause';
@@ -210,7 +209,7 @@ export class Toolbar {
 
   setMarkersVisible(visible: boolean) {
     this.markersVisible = visible;
-    const eyeBtn = this.element.querySelector('.pinmark-toolbar-btn:nth-child(2)') as HTMLButtonElement;
+    const eyeBtn = this.element.querySelector('[data-action="markers"]') as HTMLButtonElement;
     if (eyeBtn) {
       eyeBtn.innerHTML = visible ? ICONS.eye : ICONS.eyeOff;
       if (visible) {
@@ -230,11 +229,11 @@ export class Toolbar {
   }
 
   showCopySuccess() {
-    const copyBtn = this.element.querySelector('.pinmark-toolbar-btn:nth-child(4)') as HTMLButtonElement;
+    const copyBtn = this.element.querySelector('[data-action="copy"]') as HTMLButtonElement;
     if (copyBtn) {
       const originalIcon = copyBtn.innerHTML;
       copyBtn.innerHTML = ICONS.check;
-      copyBtn.style.background = '#22c55e';
+      copyBtn.style.background = 'var(--pmk-success, #22c55e)';
       setTimeout(() => {
         copyBtn.innerHTML = originalIcon;
         copyBtn.style.background = '';
@@ -242,3 +241,4 @@ export class Toolbar {
     }
   }
 }
+
