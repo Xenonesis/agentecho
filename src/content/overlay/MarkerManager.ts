@@ -3,6 +3,7 @@ import type { FeedbackItem, ExtensionSettings } from '../../shared/types';
 export interface MarkerCallbacks {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void | Promise<void>;
+  onCopy: (id: string) => void;
 }
 
 const MARKER_STYLES = (color: string) => `
@@ -198,7 +199,26 @@ export class MarkerManager {
       this.callbacks.onDelete(feedback.id);
     };
 
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'pinmark-marker-btn';
+    copyBtn.textContent = 'Copy';
+    copyBtn.style.background = '#6b7280';
+    copyBtn.onclick = async (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      // Visual feedback "Copied" briefly
+      const prev = copyBtn.textContent;
+      copyBtn.textContent = '✓ Copied';
+      copyBtn.style.background = '#22c55e';
+      setTimeout(() => {
+        copyBtn.textContent = prev;
+        copyBtn.style.background = '#6b7280';
+      }, 900);
+      this.callbacks.onCopy(feedback.id);
+    };
+
     actions.appendChild(editBtn);
+    actions.appendChild(copyBtn);
     actions.appendChild(deleteBtn);
     popup.appendChild(commentEl);
     popup.appendChild(actions);

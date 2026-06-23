@@ -3,6 +3,7 @@ import { MarkerManager } from './MarkerManager';
 import { Toolbar } from './Toolbar';
 import { FeedbackModal } from './FeedbackModal';
 import { ElementAnalyzer } from '../analyzers/ElementAnalyzer';
+import { MarkdownFormatter } from '../feedback/MarkdownFormatter';
 import type { ExtensionSettings, FeedbackItem } from '../../shared/types';
 import type { FeedbackManager } from '../feedback/FeedbackManager';
 import { sendMessage } from '../../shared/messaging';
@@ -82,6 +83,7 @@ export class Overlay {
     this.markerManager = new MarkerManager(this.shadowRoot, settings, {
       onEdit: (id) => this.handleEditFeedback(id),
       onDelete: (id) => this.handleDeleteFeedback(id),
+      onCopy: (id) => this.handleCopyFeedback(id),
     });
     this.toolbar = new Toolbar(this.shadowRoot, settings);
     this.feedbackModal = new FeedbackModal(this.shadowRoot);
@@ -224,6 +226,18 @@ export class Overlay {
     this.markerManager.removeMarker(id);
     // Re-index remaining markers
     await this.reindexMarkers();
+  }
+
+  private async handleCopyFeedback(id: string) {
+    const item = this.feedbackManager.getAll().find(f => f.id === id);
+    if (!item) return;
+    try {
+      const fmt = new MarkdownFormatter();
+      const markdown = fmt.formatItem(item, this.settings);
+      await navigator.clipboard.writeText(markdown);
+    } catch (e) {
+      console.error('Failed to copy feedback item:', e);
+    }
   }
 
   private async reindexMarkers() {

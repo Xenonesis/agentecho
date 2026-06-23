@@ -24,6 +24,14 @@ export class MarkdownFormatter {
     return markdown;
   }
 
+  /** Format a single feedback item (no report wrapper) for per-marker copy. */
+  formatItem(item: FeedbackItem, settings?: ExtensionSettings): string {
+    const detail = settings?.outputDetail || 'standard';
+    let md = this.formatFeedback(item, detail);
+    md = md.replace(/\n---\n\n$/, '');
+    return md.trim() + '\n';
+  }
+
   private formatFeedback(item: FeedbackItem, detail: 'minimal' | 'standard' | 'comprehensive'): string {
     let markdown = `## Feedback #${item.index}\n`;
     markdown += `> ${item.comment}\n\n`;
