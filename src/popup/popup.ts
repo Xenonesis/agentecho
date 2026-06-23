@@ -41,7 +41,14 @@ async function init() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   currentTabId = tab.id || null;
 
-  if (currentTabId === null) return;
+  if (currentTabId === null) {
+    const status = document.getElementById('statusMsg');
+    if (status) {
+      status.textContent = '⚠ Open a webpage first, then click the Pinmark icon to annotate.';
+      status.style.display = 'block';
+    }
+    return;
+  }
 
   const response = await sendMessage({ type: 'GET_STATE', tabId: currentTabId }) as { isActive: boolean };
   isActive = response.isActive;
@@ -87,7 +94,14 @@ async function saveSetting(key: keyof ExtensionSettings, value: unknown) {
 }
 
 toggleBtn?.addEventListener('click', async () => {
-  if (currentTabId === null) return;
+  if (currentTabId === null) {
+    const status = document.getElementById('statusMsg');
+    if (status) {
+      status.textContent = '⚠ No active tab detected. Try clicking the extension icon while on a webpage.';
+      status.style.display = 'block';
+    }
+    return;
+  }
 
   const prevState = isActive;
 
