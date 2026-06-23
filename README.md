@@ -8,8 +8,10 @@
   [![License: Polyform Noncommercial](https://img.shields.io/badge/License-Polyform_Noncommercial_1.0.0-red.svg?style=flat-square)](LICENSE.md)
   [![Chrome Version](https://img.shields.io/badge/Chrome-Manifest%20V3-green.svg?style=flat-square)](https://developer.chrome.com/docs/extensions/mv3/intro/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
+  [![GitHub last commit](https://img.shields.io/github/last-commit/Xenonesis/Pinmark?style=flat-square)](https://github.com/Xenonesis/Pinmark/commits/main)
+  [![GitHub stars](https://img.shields.io/github/stars/Xenonesis/Pinmark?style=flat-square)](https://github.com/Xenonesis/Pinmark/stargazers)
 
-  [Features](#-features) &bull; [Installation](#-installation) &bull; [Usage](#-usage) &bull; [Development](#-development)
+  [Features](#features) &bull; [Installation](#installation) &bull; [Usage](#usage) &bull; [Development](#development) &bull; [Website](https://xenonesis.github.io/Pinmark/)
 
   Place visual markers on any webpage element and generate AI-optimized Markdown feedback reports. Perfect for code reviews, bug reporting, and communicating with AI coding assistants.
 
@@ -17,114 +19,89 @@
 
 ---
 
-## Screenshots
-
-<div align="center">
-
-  ![Pinmark Demo](assets/demo.gif)
-
-  *Hover to highlight elements, click to add feedback*
-
-</div>
-
----
-
 ## Features
 
-- **Visual Annotation System**
-  - Click any element to place a numbered marker
-  - Blue hover highlight shows exactly what you're targeting
-  - Markers stay visible and positioned on the page
+### Annotation
+- **Click to mark** — Click any DOM element to place a numbered marker with a feedback note
+- **Hover preview** — Blue highlight box shows exactly what you're targeting before you click
+- **Persistent markers** — Markers stay visible and positioned until cleared or the page reloads
+- **Per-marker actions** — Hover a marker to see [**Copy**] [**Edit**] [**Delete**] actions (Copy grabs just that item's Markdown)
 
-- **Framework Detection**
-  - Automatically detects React components
-  - Identifies Angular components
-  - Vue and Svelte support planned
+### Smart Analysis
+- **Stable CSS selectors** — Generates unique, stable selectors via ID, classes, data attributes or nth-of-type path
+- **Framework detection** — Detects React (fiber inspection) and Angular (debug properties); component names appear in the report
+- **Comprehensive metadata** — Captures tag name, classes, IDs, data attributes, text content, bounding rect, and component props
+- **Three detail levels** — `minimal` / `standard` / `comprehensive`
 
-- **Smart Element Analysis**
-  - Generates unique, stable CSS selectors
-  - Extracts classes, IDs, and data attributes
-  - Captures text content and component names
-  - Stores element position for accurate marker placement
+### Export
+- **Full report copy** — `C` key or toolbar Copy button copies the entire Markdown report
+- **Per-item copy** — Hover any marker and click Copy to grab just that one feedback item
+- **AI-optimized format** — Structured Markdown that AI coding agents parse reliably
+- **Clear after copy** — Optional setting auto-clears markers once copied
 
-- **Markdown Export**
-  - One-click copy to clipboard
-  - Structured format optimized for AI coding agents
-  - Includes all element context for precise communication
-
-- **Developer-Friendly**
-  - Shadow DOM isolation (won't break page styles)
-  - Works on any website
-  - Keyboard shortcuts for power users
-  - Per-page feedback persistence
-
----
-
-## Installation
-
-### From Chrome Web Store
-
-![Chrome Web Store](https://chromewebstore.google.com/detail/fdkdjnebmcmlhnbecbfefebpdhihdjjb)
-
-> Support continued development by purchasing for $1 on the Chrome Web Store.
-
-### From Source (Free)
-
-If you're comfortable building from source, you can use Pinmark completely free:
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/pinmark.git
-   cd pinmark
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Build the extension**
-   ```bash
-   npm run build
-   ```
-
-4. **Load in Chrome**
-   - Open `chrome://extensions/`
-   - Enable "Developer mode" (toggle in top-right)
-   - Click "Load unpacked"
-   - Select the `dist/` directory
-
----
-
-## Usage
-
-### Basic Workflow
-
-1. **Click the extension icon** in your browser toolbar to open Pinmark
-2. **Click "Activate"** to enable annotation on the current page
-3. **Hover** over any element to see the blue highlight box
-4. **Click** an element to place a marker
-5. **Enter your feedback** in the modal that appears
-6. **Repeat** for as many elements as needed
-7. **Click "Copy"** in the toolbar to copy formatted Markdown to clipboard
+### Developer Experience
+- **3-mode theme** — Light, dark, or auto (follows OS) for both popup AND overlay
+- **Shadow DOM isolation** — Styles never fight the host page
+- **Draggable toolbar** — Repositionable floating toolbar
+- **Per-page persistence** — Feedback restored on revisit (keyed by origin + path)
+- **Live settings sync** — Popup changes take effect in the overlay immediately
+- **SPA-friendly** — Monitors URL changes via rAF + popstate/hashchange
 
 ### Keyboard Shortcuts
 
 | Key | Action |
 |-----|--------|
-| `C` | Copy all feedback to clipboard |
+| `C` | Copy full feedback report (only when no text is selected) |
 | `H` | Toggle marker visibility |
-| `Delete` / `Backspace` | Clear all markers |
-| `Escape` | Exit annotation mode |
-| `Ctrl+Shift+A` | Exit annotation mode |
+| `Delete` / `Backspace` | Clear all markers (not in input fields) |
+| `Escape` | Deactivate annotation mode |
+| `Ctrl` / `⌘` + `Shift` + `A` | Deactivate globally |
+
+---
+
+## Installation
+
+### From Source (Free)
+
+```bash
+# 1. Clone
+git clone https://github.com/Xenonesis/Pinmark.git
+cd Pinmark
+
+# 2. Install dependencies
+npm install
+
+# 3. Build
+npm run build       # production (dist/)
+# or
+npm run dev         # HMR via Vite + @crxjs
+
+# 4. Load in Chrome
+# chrome://extensions → Developer mode → Load unpacked → select dist/
+```
+
+> **Chrome Web Store** — coming soon. Build from source in the meantime.
+
+---
+
+## Usage
+
+1. **Click the extension icon** in your browser toolbar to open Pinmark
+2. **Click "Activate"** to enable annotation on the current page
+3. **Hover** over any element to see the blue highlight box
+4. **Click** an element to place a numbered marker
+5. **Enter your feedback** in the modal that appears
+6. **Repeat** for as many elements as needed
+7. **Copy** — press `C` or click the toolbar Copy button, or hover a marker and click Copy
 
 ### Toolbar Controls
 
-- **Pause**: Temporarily disable hover highlighting
-- **Hide Markers**: Toggle marker visibility
-- **Copy**: Copy all feedback as Markdown
-- **Clear**: Remove all markers
-- **Exit**: Deactivate extension
+| Button | Action |
+|--------|--------|
+| Pause / Play | Toggle hover highlighting |
+| Eye / Eye-off | Show / hide markers |
+| Copy | Copy full report as Markdown |
+| Trash | Clear all markers |
 
 ### Example Output
 
@@ -163,132 +140,102 @@ If you're comfortable building from source, you can use Pinmark completely free:
 
 ## Development
 
-### Prerequisites
+### Tech Stack
 
-- Node.js 18+ and npm
-- Chrome browser (for testing)
-
-### Setup
-
-```bash
-# Install dependencies
-npm install
-
-# Development mode with hot-reload
-npm run dev
-
-# Type checking
-npm run build  # Includes tsc compilation
-```
+| Layer | Tech |
+|---|---|
+| Language | TypeScript 5.6 (strict) |
+| Build | Vite 5 + @crxjs/vite-plugin |
+| Extension API | Chrome Manifest V3 |
+| Overlay isolation | Shadow DOM (open) |
+| Storage | `chrome.storage.local` |
+| Messaging | `chrome.runtime.onMessage` protocol |
 
 ### Project Structure
 
 ```
-pinmark/
-├── manifest.json              # Chrome extension manifest
+Pinmark/
+├── manifest.json              # Chrome extension manifest (source)
+├── vite.config.ts             # Vite + @crxjs configuration
+├── tsconfig.json              # TypeScript config
+├── package.json               # Dependencies & scripts
+├── index.html                 # Landing page (GitHub Pages)
+├── 404.html                   # Custom 404 page
+├── favicon.svg                # SVG favicon
+├── assets/                    # Icons, logo, demo gif
 ├── src/
-│   ├── background/           # Service worker (message broker)
-│   ├── content/              # Injected content scripts
-│   │   ├── overlay/         # Visual UI components
-│   │   ├── analyzers/       # DOM inspection
-│   │   └── feedback/        # Markdown generation
-│   ├── popup/               # Extension popup UI
-│   └── shared/              # Types, storage, messaging
-├── vite.config.ts
-├── tsconfig.json
-└── package.json
+│   ├── background/            # Service worker (message broker)
+│   │   └── index.ts
+│   ├── content/               # Injected into every page
+│   │   ├── index.ts           # Entry: message handler, keyboard, SPA monitoring
+│   │   ├── overlay/           # Visual UI (Shadow DOM components)
+│   │   │   ├── Overlay.ts     # Container, event wiring, marker management
+│   │   │   ├── HoverBox.ts    # Blue highlight box on hover
+│   │   │   ├── MarkerManager.ts  # Marker dots, popups, callbacks
+│   │   │   ├── Toolbar.ts     # Floating toolbar (pause, eye, copy, trash)
+│   │   │   └── FeedbackModal.ts  # Edit/create feedback text input
+│   │   ├── analyzers/         # DOM inspection
+│   │   │   ├── ElementAnalyzer.ts    # Top-level analysis wrapper
+│   │   │   ├── SelectorGenerator.ts  # Stable CSS selector generation
+│   │   │   └── FrameworkDetector.ts  # React/Angular component detection
+│   │   └── feedback/          # Markdown generation & storage
+│   │       ├── FeedbackManager.ts    # CRUD for feedback items
+│   │       └── MarkdownFormatter.ts  # Report formatting (3 detail levels)
+│   ├── popup/                 # Extension popup UI
+│   │   ├── index.html
+│   │   ├── popup.css
+│   │   └── popup.ts           # Settings panel, theme provider, activation
+│   └── shared/                # Shared across contexts
+│       ├── types.ts           # TypeScript interfaces & message types
+│       ├── messaging.ts       # chrome.runtime.sendMessage wrappers
+│       ├── storage.ts         # chrome.storage.local get/set helpers
+│       └── theme-provider.ts  # 3-mode theme class (storage-agnostic)
+└── dist/                      # Built output (gitignored, loaded as extension)
 ```
 
-### Tech Stack
-
-- **TypeScript** 5.6 - Type-safe development
-- **Vite** 5 - Fast build tool with HMR
-- **@crxjs/vite-plugin** - Chrome extension build integration
-- **Shadow DOM** - Style isolation
-- **Chrome Manifest V3** - Latest extension APIs
-
-### Building for Production
+### Scripts
 
 ```bash
-# Build optimized production bundle
-npm run build
-
-# Output directory: dist/
-# Load in Chrome via chrome://extensions/ -> Load unpacked
+npm run dev           # Development mode with HMR
+npm run build         # Production build (tsc + vite build)
+npm run generate-icons # Regenerate PNG icons from SVG source
 ```
 
-### Generating Icons
-
-```bash
-# Generate extension icons from source
-npm run generate-icons
-```
-
----
-
-## License
-
-**Polyform Noncommercial 1.0.0**
-
-This project is source-available but not open-source software.
-
-### What You CAN Do (Free):
-- Use the software for personal or internal business purposes
-- Study and modify the source code for your own use
-- Build and install from source yourself
-
-### What You CANNOT Do:
-- Distribute the software or derivatives commercially
-- Sell the extension on the Chrome Web Store or other marketplaces
-- Use the software in commercial products or services
-
-[Read full license text](LICENSE.md)
-
-> **Why this license?**
-> Pinmark is free to build and use for developers who want to compile from source. Purchasing from the Chrome Web Store for $2 supports continued development, covers hosting costs, and provides an easy, pre-built installation option. Think of it as a "buy me a coffee" model for convenience.
-
----
-
-## Known Limitations
+### Known Limitations
 
 - Cannot inject into cross-origin iframes (browser security)
 - Framework detection may fail on production/minified builds
-- Selectors may break if DOM structure changes significantly between sessions
+- Selectors may break if DOM structure changes significantly
+- `file://` URLs require enabling "Allow access to file URLs" in `chrome://extensions`
 
 ---
 
-## Roadmap
+## Comparison: Pinmark vs Areshkew/agentecho
 
-- [ ] Vue and Svelte framework detection
-- [ ] Screenshot capture per feedback item
-- [ ] JSON export option
-- [ ] Feedback categories and tags
-- [ ] Cloud sync for feedback across devices
-- [ ] Team collaboration features
-- [ ] Integration with popular issue trackers
+Pinmark is a maintained continuation of [Areshkew/agentecho](https://github.com/Areshkew/agentecho) — same Chrome Web Store listing (`fdkdjnebmcmlhnbecbfefebpdhihdjjb`), same extension ID, refreshed under a new name and active development.
 
----
+### Shared Engine
 
-## Contributing
+| Feature | Both |
+|---|---|
+| Visual markers + hover outline | ✓ |
+| Markdown feedback export | ✓ |
+| Shadow DOM isolation | ✓ |
+| Framework detection (React / Angular) | ✓ |
+| Keyboard shortcuts | ✓ |
+| Per-page feedback persistence | ✓ |
+| Chrome MV3 · TypeScript 5.6 | ✓ |
 
-While this license restricts commercial distribution, contributions are welcome! Please feel free to:
+### Pinmark Extensions
 
-- Report bugs via GitHub Issues
-- Suggest new features
-- Submit pull requests for bug fixes
-- Improve documentation
-
-All contributions must adhere to the Polyform Noncommercial license terms.
-
----
-
-## Acknowledgments
-
-Built with modern web standards and Chrome Extension Manifest V3.
-
-- Inspired by the need for better developer-to-AI communication tools
-- Framework detection patterns learned from React and Angular DevTools
-- Shadow DOM isolation for seamless integration
+| Feature | Pinmark | Areshkew |
+|---|---|---|
+| Active maintenance & releases | ✓ | static since Jan 2026 |
+| 3-mode theme works in popup + overlay | ✓ | stub select, system only |
+| Unified `ThemeProvider` | ✓ | hardcoded theme |
+| Typed `ExtensionSettings` | ✓ | `any` settings |
+| Per-marker Copy button | ✓ | — |
+| Live settings sync | ✓ | — |
 
 ---
 
@@ -306,36 +253,15 @@ Built and maintained by **[Xenonesis](https://github.com/Xenonesis)** (Aditya Ku
 
 ---
 
-## Pinmark vs Areshkew/agentecho
+## License
 
-Pinmark is a maintained continuation of [Areshkew/agentecho](https://github.com/Areshkew/agentecho) — same Chrome Web Store listing (`fdkdjnebmcmlhnbecbfefebpdhihdjjb`), same extension ID, refreshed under a new name and active development.
+**Polyform Noncommercial 1.0.0** — source-available, free for developers.
 
-| | Pinmark (this repo) | Areshkew/agentecho |
-|---|---|---|
-| **Visual markers + hover outline** | ✓ | ✓ |
-| **Markdown feedback export** | ✓ | ✓ |
-| **Shadow DOM isolation** | ✓ | ✓ |
-| **Framework detection (React/Angular)** | ✓ | ✓ |
-| **Keyboard shortcuts (`C`, `H`, `Esc`, …)** | ✓ | ✓ |
-| **Per-page feedback persistence** | ✓ | ✓ |
-| **Chrome MV3 / TypeScript 5.6** | ✓ | ✓ |
-| **Interactive landing page (auto-play demo)** | ✓ | ✗ (static readme-only) |
-| **Live "try it" two-pane demo** | ✓ | ✗ |
-| **Live GitHub stars badge** | ✓ | ✗ |
-| **GitHub Pages site** | ✓ (live) | ✗ |
-| **3-mode theme (light / dark / auto)** | ✓ (web + popup) | partial (popup only) |
-| **Custom pin logo + favicon** | ✓ | ✗ |
-| **Unified `ThemeProvider` (storage-agnostic)** | ✓ | ✗ |
-| **Active maintenance** | ✓ | ✗ (static) |
+| You can | You can't |
+|---|---|
+| Read, build, and modify the source for personal use | Resell on Chrome Web Store or other marketplaces |
+| Use it internally at your company | Bundle in a commercial product |
+| Fork and modify it for your own needs | Offer as a hosted service |
+| Contribute improvements via PR | Strip the license notice from forks |
 
-**Same engine, polished surface.** If you already use the original, switching costs you nothing — the extension ID and Chrome Web Store listing are unchanged.
-
----
-
-<div align="center">
-
-  **Made with care for developers who care about details**
-
-  [Report a Bug](../../issues) &bull; [Request a Feature](../../issues) &bull; [Support Development](https://chromewebstore.google.com/detail/fdkdjnebmcmlhnbecbfefebpdhihdjjb)
-
-</div>
+[Full license text](LICENSE.md) · [Plain English breakdown](https://xenonesis.github.io/Pinmark/#license)
