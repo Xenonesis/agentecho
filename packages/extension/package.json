@@ -1,0 +1,38 @@
+{
+  "name": "@pinmark/extension",
+  "version": "1.0.0",
+  "description": "Visual feedback annotation tool for developers to place markers on DOM elements and generate AI-optimized Markdown",
+  "type": "module",
+  "license": "Polyform-Noncommercial-1.0.0",
+  "author": {
+    "name": "Xenonesis",
+    "email": "contact@xenonesis.dev",
+    "url": "https://github.com/Xenonesis"
+  },
+  "homepage": "https://github.com/Xenonesis/Pinmark#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Xenonesis/Pinmark.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Xenonesis/Pinmark/issues"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "generate-icons": "node scripts/generate-icons.js"
+  },
+  "dependencies": {
+    "@pinmark/core": "^1.0.0",
+    "@pinmark/pinmark": "^1.0.0",
+    "html2canvas": "^1.4.1"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.23",
+    "@types/chrome": "^0.0.268",
+    "sharp": "^0.33.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

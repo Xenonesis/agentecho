@@ -1,0 +1,294 @@
+import type { PinmarkSettings as ExtensionSettings } from '../core/types';
+import type { PinmarkAnnotation as FeedbackItem } from '@pinmark/core';
+
+export interface MarkerCallbacks {
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void | Promise<void>;
+  onCopy: (id: string) => void;
+}
+
+const MARKER_STYLES = (color: string) => `
+  .pinmark-markers-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 2147483645;
+  }
+
+  .pinmark-marker {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background-color: ${color};
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+    pointer-events: all;
+    user-select: none;
+  }
+
+  .pinmark-marker:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .pinmark-marker.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .pinmark-marker-popup {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--pmk-bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-width: 180px;
+    max-width: 280px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.15s ease-out, visibility 0.15s ease-out;
+    z-index: 2147483646;
+  }
+
+  .pinmark-marker-popup::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--pmk-bg);
+  }
+
+  .pinmark-marker:hover .pinmark-marker-popup {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+  }
+
+  .pinmark-marker-comment {
+    color: var(--pmk-text);
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  .pinmark-marker-actions {
+    display: flex;
+    gap: 6px;
+    border-top: 1px solid var(--pmk-border);
+    padding-top: 10px;
+  }
+
+  .pinmark-marker-btn {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: white;
+    transition: background 0.15s ease-out;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .pinmark-marker-btn.edit {
+    background: var(--pmk-accent);
+  }
+
+  .pinmark-marker-btn.edit:hover {
+    background: #2563eb;
+  }
+
+  .pinmark-marker-btn.delete {
+    background: var(--pmk-danger);
+  }
+
+  .pinmark-marker-btn.delete:hover {
+    background: #dc2626;
+  }
+`;
+
+export class MarkerManager {
+  private shadowRoot: ShadowRoot;
+  private settings: ExtensionSettings;
+  private callbacks: MarkerCallbacks;
+  private container: HTMLElement;
+  private markers = new Map<string, { element: HTMLElement; commentEl: HTMLElement }>();
+  private visible = true;
+
+  constructor(shadowRoot: ShadowRoot, settings: ExtensionSettings, callbacks: MarkerCallbacks) {
+    this.shadowRoot = shadowRoot;
+    this.settings = settings;
+    this.callbacks = callbacks;
+    
+    // Create container for markers
+    this.container = document.createElement('div');
+    this.container.className = 'pinmark-markers-container';
+    this.shadowRoot.appendChild(this.container);
+    
+    this.injectStyles();
+  }
+
+  private injectStyles() {
+    let styleElement = this.shadowRoot.querySelector('#pinmark-marker-styles');
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = 'pinmark-marker-styles';
+      this.shadowRoot.appendChild(styleElement);
+    }
+    (styleElement as HTMLStyleElement).textContent = MARKER_STYLES(this.settings.markerColor);
+  }
+
+  addMarker(feedback: FeedbackItem) {
+    const rect = feedback.element.boundingRect;
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+    const marker = document.createElement('div');
+    marker.className = 'pinmark-marker';
+    marker.dataset.feedbackId = feedback.id;
+    marker.textContent = feedback.index.toString();
+    marker.style.top = `${rect.top + scrollTop - 14}px`;
+    marker.style.left = `${rect.left + scrollLeft + rect.width / 2 - 14}px`;
+
+    // Create popup container
+    const popup = document.createElement('div');
+    popup.className = 'pinmark-marker-popup';
+
+    // Comment text
+    const commentEl = document.createElement('div');
+    commentEl.className = 'pinmark-marker-comment';
+    commentEl.textContent = feedback.comment;
+
+    // Actions container
+    const actions = document.createElement('div');
+    actions.className = 'pinmark-marker-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'pinmark-marker-btn edit';
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      this.callbacks.onEdit(feedback.id);
+    };
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'pinmark-marker-btn delete';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      this.callbacks.onDelete(feedback.id);
+    };
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'pinmark-marker-btn';
+    copyBtn.textContent = 'Copy';
+    copyBtn.style.background = '#6b7280';
+    copyBtn.onclick = async (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      // Visual feedback "Copied" briefly
+      const prev = copyBtn.textContent;
+      copyBtn.textContent = '✓ Copied';
+      copyBtn.style.background = '#22c55e';
+      setTimeout(() => {
+        copyBtn.textContent = prev;
+        copyBtn.style.background = '#6b7280';
+      }, 900);
+      this.callbacks.onCopy(feedback.id);
+    };
+
+    actions.appendChild(editBtn);
+    actions.appendChild(copyBtn);
+    actions.appendChild(deleteBtn);
+    popup.appendChild(commentEl);
+    popup.appendChild(actions);
+    marker.appendChild(popup);
+
+    this.container.appendChild(marker);
+    this.markers.set(feedback.id, { element: marker, commentEl });
+
+    if (!this.visible) {
+      marker.classList.add('hidden');
+    }
+  }
+
+  updateMarkerTooltip(id: string, newComment: string) {
+    const markerData = this.markers.get(id);
+    if (markerData) {
+      markerData.commentEl.textContent = newComment;
+    }
+  }
+
+  removeMarker(id: string) {
+    const markerData = this.markers.get(id);
+    if (markerData) {
+      markerData.element.remove();
+      this.markers.delete(id);
+    }
+  }
+
+  clearAll() {
+    this.markers.forEach(({ element }) => element.remove());
+    this.markers.clear();
+  }
+
+  setVisible(visible: boolean) {
+    this.visible = visible;
+    this.markers.forEach(({ element }) => {
+      if (visible) {
+        element.classList.remove('hidden');
+      } else {
+        element.classList.add('hidden');
+      }
+    });
+  }
+
+  updatePositions(feedbackItems: FeedbackItem[]) {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+    feedbackItems.forEach(item => {
+      const markerData = this.markers.get(item.id);
+      if (!markerData) return;
+
+      let rect = item.element.boundingRect;
+      try {
+        const currentElement = document.querySelector(item.element.selector);
+        if (currentElement) {
+          rect = currentElement.getBoundingClientRect();
+        }
+      } catch (e) {
+        // Ignore selector errors, keep original rect
+      }
+
+      markerData.element.style.top = `${rect.top + scrollTop - 14}px`;
+      markerData.element.style.left = `${rect.left + scrollLeft + rect.width / 2 - 14}px`;
+    });
+  }
+
+  updateSettings(settings: ExtensionSettings) {
+    this.settings = settings;
+    this.injectStyles();
+  }
+}
