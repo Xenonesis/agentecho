@@ -31,6 +31,12 @@ const copyJsonBtn = document.getElementById('copyJsonBtn') as HTMLButtonElement;
 // ── Theme ─────────────────────────────────────────────
 let isDark = true;
 
+const THEME_ICONS = {
+  light: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="4"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.3 4.3l1.4 1.4M14.3 14.3l1.4 1.4M4.3 15.7l1.4-1.4M14.3 4.3l1.4 1.4"/></svg>`,
+  dark: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16.5 13.5A7.5 7.5 0 018.5 2.5a8.5 8.5 0 108 11z"/></svg>`,
+  auto: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="9" rx="1.5"/><path d="M8 17h4M10 14v3"/></svg>`
+};
+
 async function applyTheme(theme: 'light' | 'dark' | 'auto') {
   if (theme === 'auto') {
     isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -38,6 +44,11 @@ async function applyTheme(theme: 'light' | 'dark' | 'auto') {
     isDark = theme === 'dark';
   }
   document.body.classList.toggle('light', !isDark);
+  
+  if (themeToggleBtn) {
+    themeToggleBtn.innerHTML = THEME_ICONS[theme] || THEME_ICONS.auto;
+    themeToggleBtn.title = `Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`;
+  }
 }
 
 // ── Update toggle button state ─────────────────────────
