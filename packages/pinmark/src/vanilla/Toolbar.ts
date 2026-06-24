@@ -215,12 +215,11 @@ export class Toolbar {
     const copyBtn = this.createButton('copy', 'Copy Annotations', 'copy');
     copyBtn.onclick = (e) => {
       e.stopPropagation();
-      const originalIcon = copyBtn.innerHTML;
       copyBtn.innerHTML = ICONS.check;
       copyBtn.style.background = 'var(--pmk-success, #22c55e)';
       this.onCopy?.();
       setTimeout(() => {
-        copyBtn.innerHTML = originalIcon;
+        copyBtn.innerHTML = ICONS.copy;
         copyBtn.style.background = '';
       }, 1500);
     };
@@ -228,12 +227,11 @@ export class Toolbar {
     const downloadJsonBtn = this.createButton('copyJson', 'Download JSON Data', 'download-json');
     downloadJsonBtn.onclick = (e) => {
       e.stopPropagation();
-      const originalIcon = downloadJsonBtn.innerHTML;
       downloadJsonBtn.innerHTML = ICONS.check;
       downloadJsonBtn.style.background = 'var(--pmk-success, #22c55e)';
       this.onDownloadJson?.();
       setTimeout(() => {
-        downloadJsonBtn.innerHTML = originalIcon;
+        downloadJsonBtn.innerHTML = ICONS.copyJson;
         downloadJsonBtn.style.background = '';
       }, 1500);
     };
@@ -241,12 +239,11 @@ export class Toolbar {
     const githubBtn = this.createButton('github', 'Create GitHub Issue', 'github');
     githubBtn.onclick = (e) => {
       e.stopPropagation();
-      const originalIcon = githubBtn.innerHTML;
       githubBtn.innerHTML = ICONS.check;
       githubBtn.style.background = 'var(--pmk-success, #22c55e)';
       this.onGithubCreate?.();
       setTimeout(() => {
-        githubBtn.innerHTML = originalIcon;
+        githubBtn.innerHTML = ICONS.github;
         githubBtn.style.background = '';
       }, 1500);
     };

@@ -305,7 +305,12 @@ export class Overlay {
     let screenshot: string | undefined;
     try {
       this.container.style.display = 'none';
-      const canvas = await html2canvas(element, { useCORS: true, logging: false, scale: window.devicePixelRatio || 1 });
+      const canvas = await html2canvas(element, {
+        useCORS: true,
+        logging: false,
+        scale: window.devicePixelRatio || 1,
+        ignoreElements: (node) => node.tagName === 'SCRIPT' || node.tagName === 'NOSCRIPT' || node.tagName === 'IFRAME' || node.tagName === 'LINK'
+      });
       screenshot = canvas.toDataURL('image/jpeg', 0.8);
     } catch (e) {
       console.warn('[Pinmark] Failed to capture screenshot:', e);

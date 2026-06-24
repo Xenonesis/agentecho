@@ -5,7 +5,8 @@ const MODAL_STYLES = `
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -14,32 +15,34 @@ const MODAL_STYLES = `
   }
 
   .pinmark-modal {
-    background: var(--pmk-bg);
+    background: rgba(24, 24, 27, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 24px;
-    width: 400px;
+    width: 420px;
     max-width: 90vw;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   .pinmark-modal-title {
-    color: var(--pmk-text);
+    color: rgba(255, 255, 255, 0.95);
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 500;
     margin: 0 0 16px 0;
   }
 
   .pinmark-modal-input {
     width: 100%;
     padding: 12px 14px;
-    border: 1px solid var(--pmk-border);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    background: var(--pmk-bg-2);
-    color: var(--pmk-text);
+    background: rgba(0, 0, 0, 0.2);
+    color: rgba(255, 255, 255, 0.9);
     font-size: 14px;
     outline: none;
-    transition: border-color 0.15s ease;
+    transition: all 0.15s ease;
     box-sizing: border-box;
     resize: vertical;
     min-height: 80px;
@@ -47,28 +50,29 @@ const MODAL_STYLES = `
   }
 
   .pinmark-modal-input:focus {
-    border-color: var(--pmk-accent);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
   }
 
   .pinmark-modal-input::placeholder {
-    color: var(--pmk-text-muted);
+    color: rgba(255, 255, 255, 0.3);
   }
 
   .pinmark-modal-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    margin-top: 16px;
+    gap: 8px;
+    margin-top: 20px;
   }
 
   .pinmark-modal-btn {
-    padding: 10px 18px;
+    padding: 8px 16px;
     border: none;
     border-radius: 6px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.15s ease, opacity 0.15s ease;
+    transition: all 0.15s ease;
   }
 
   .pinmark-modal-btn:disabled {
@@ -77,30 +81,32 @@ const MODAL_STYLES = `
   }
 
   .pinmark-modal-btn.cancel {
-    background: var(--pmk-bg-3);
-    color: var(--pmk-text);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
   }
 
   .pinmark-modal-btn.cancel:hover:not(:disabled) {
-    background: #4b5563;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
   }
 
   .pinmark-modal-btn.submit {
-    background: var(--pmk-accent);
-    color: white;
+    background: #ffffff;
+    color: #000000;
   }
 
   .pinmark-modal-btn.submit:hover:not(:disabled) {
-    background: #2563eb;
+    background: #e5e5e5;
   }
 
   .pinmark-modal-element-info {
-    background: var(--pmk-bg-2);
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 6px;
     padding: 10px 12px;
     margin-bottom: 16px;
     font-size: 12px;
-    color: var(--pmk-text-muted);
+    color: rgba(255, 255, 255, 0.6);
     font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -232,14 +238,18 @@ export class FeedbackModal {
       canvas.onmouseleave = endDrawing;
 
       const hint = document.createElement('div');
-      hint.textContent = 'Draw on the screenshot to add markup';
+      hint.textContent = 'Draw to highlight';
       hint.style.fontSize = '12px';
-      hint.style.color = '#fff';
-      hint.style.padding = '4px 8px';
-      hint.style.background = 'rgba(0,0,0,0.5)';
+      hint.style.color = 'rgba(255,255,255,0.9)';
+      hint.style.padding = '6px 12px';
+      hint.style.background = 'rgba(0,0,0,0.6)';
+      hint.style.backdropFilter = 'blur(4px)';
+      hint.style.borderRadius = '20px';
+      hint.style.border = '1px solid rgba(255,255,255,0.1)';
       hint.style.position = 'absolute';
-      hint.style.top = '0';
-      hint.style.left = '0';
+      hint.style.top = '12px';
+      hint.style.left = '50%';
+      hint.style.transform = 'translateX(-50%)';
       hint.style.pointerEvents = 'none';
 
       markupContainer.appendChild(canvas);
