@@ -157,14 +157,39 @@ button:focus-visible, a:focus-visible { outline-offset: 3px; }
   html { scroll-behavior: auto; }
 }
 
-#starfield {
+#starfield-wrapper {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
+  background: var(--bg);
+}
+
+#starfield {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   display: block;
+}
+
+.starfield-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  background: radial-gradient(ellipse at 30% 40%, rgba(56, 100, 180, 0.4) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(100, 60, 150, 0.3) 0%, transparent 50%);
+}
+[data-theme="light"] .starfield-glow {
+  opacity: 0.15;
+  background: radial-gradient(ellipse at 30% 40%, rgba(56, 100, 180, 0.2) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(100, 60, 150, 0.1) 0%, transparent 50%);
+}
+
+.starfield-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, transparent 40%, var(--bg) 100%);
 }
 
 .topbar, .wrap, section, footer { position: relative; z-index: 1; }
@@ -2786,7 +2811,11 @@ footer a:hover { color: var(--ink); }
 <body>
 
 <a class="skip-link" href="#main">Skip to main content</a>
-<canvas id="starfield" aria-hidden="true"></canvas>
+<div id="starfield-wrapper" aria-hidden="true">
+  <canvas id="starfield"></canvas>
+  <div class="starfield-glow"></div>
+  <div class="starfield-vignette"></div>
+</div>
 
 <div class="progress-bar" aria-hidden="true"></div>
 <div class="topbar" role="navigation" aria-label="Main navigation">
@@ -3008,19 +3037,47 @@ footer a:hover { color: var(--ink); }
 
     <div class="steps">
       <div class="step">
-        <div class="step-label">01 · activate</div>
-        <h3>Click the extension icon</h3>
-        <p>Hit <strong>Activate</strong> in the popup. Pinmark attaches to the active tab and listens for clicks.</p>
+        <div class="step-label">01 · activate & target</div>
+        <h3>Activate and Hover</h3>
+        <p>Hit <strong>Activate</strong>. Pinmark attaches to the active tab. Hover any element to preview it. Press <span class="kbd">F</span> to <strong>Deep Freeze</strong> hover states and animations.</p>
       </div>
       <div class="step">
         <div class="step-label">02 · annotate</div>
         <h3>Click elements to mark them</h3>
-        <p>A blue hover box previews your target. Click to drop a numbered marker, then write a note in the modal.</p>
+        <p>Click to drop a numbered marker, or drag for area selection. Pinmark silently extracts CSS animations, network requests, and framework data.</p>
       </div>
       <div class="step">
         <div class="step-label">03 · copy</div>
         <h3>Copy the Markdown</h3>
         <p>Press <span class="kbd">C</span> or hit <strong>Copy</strong> in the toolbar. The full report is on your clipboard, formatted for AI.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ADVANCED FEATURES -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// beyond basics</span>
+    <h2>Built for the modern web</h2>
+    <p class="lede">It's not just a screenshot tool. Pinmark dives into the DOM to pull out the data your AI needs.</p>
+    
+    <div class="compare" style="grid-template-columns: repeat(2, 1fr); gap: 32px; margin-top: 40px;">
+      <div class="compare-col">
+        <h4 style="color: var(--ink);">❄️ Deep Freeze (Hotkey: F)</h4>
+        <p style="font-size: 14px; color: var(--muted); margin-top: 8px;">Instantly freeze CSS animations and lock <code>:hover</code> states visually. Catch those hard-to-click dropdowns and animated buttons effortlessly.</p>
+      </div>
+      <div class="compare-col">
+        <h4 style="color: var(--ink);">🔍 Zero-UI Animation Capture</h4>
+        <p style="font-size: 14px; color: var(--muted); margin-top: 8px;">Pinmark automatically reads exact CSS animation and transition properties in the background. No extra panels to open.</p>
+      </div>
+      <div class="compare-col">
+        <h4 style="color: var(--ink);">⚛️ Framework Detection</h4>
+        <p style="font-size: 14px; color: var(--muted); margin-top: 8px;">Identifies React, Next.js, Vue, Angular, Svelte, Nuxt, and Astro components by analyzing the DOM.</p>
+      </div>
+      <div class="compare-col">
+        <h4 style="color: var(--ink);">🔲 Area Selection</h4>
+        <p style="font-size: 14px; color: var(--muted); margin-top: 8px;">Drag to select a custom area when a single DOM element isn't enough to capture a broken layout.</p>
       </div>
     </div>
   </div>
@@ -4200,7 +4257,7 @@ footer a:hover { color: var(--ink); }
         const tw = (Math.sin(s.tw) + 1) / 2;
         const alpha = p.alphaMin + tw * (p.alphaMax - p.alphaMin);
 
-        ctx.strokeStyle = `rgba(${p.ink},${alpha * 0.45})`;
+        ctx.strokeStyle = `rgba(${p.ink},${alpha * 0.15})`;
         ctx.lineWidth = size;
         ctx.beginPath();
         ctx.moveTo(px, py);
@@ -4214,29 +4271,28 @@ footer a:hover { color: var(--ink); }
       }
     };
 
+    const baseSpeed = reduced ? 0.2 : 2.2;
     const tick = () => {
       if (!running) return;
       const p = palette();
       ctx.fillStyle = p.bg;
       ctx.fillRect(0, 0, w, h);
-      drawStars(2.2, false);
+      drawStars(baseSpeed, false);
       rafId = requestAnimationFrame(tick);
     };
 
     resize();
 
-    if (!reduced) {
-      rafId = requestAnimationFrame(tick);
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-          running = false;
-          cancelAnimationFrame(rafId);
-        } else {
-          running = true;
-          rafId = requestAnimationFrame(tick);
-        }
-      });
-    }
+    rafId = requestAnimationFrame(tick);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        running = false;
+        cancelAnimationFrame(rafId);
+      } else {
+        running = true;
+        rafId = requestAnimationFrame(tick);
+      }
+    });
 
     let resizeTimer;
     window.addEventListener('resize', () => {
