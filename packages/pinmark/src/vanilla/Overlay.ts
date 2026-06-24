@@ -1,6 +1,5 @@
 import { HoverBox } from './HoverBox';
 import { AreaSelectionBox } from './AreaSelectionBox';
-import { LayoutMode } from './LayoutMode';
 import { MarkerManager } from './MarkerManager';
 import { Toolbar } from './Toolbar';
 import { FeedbackModal } from './FeedbackModal';
@@ -59,7 +58,6 @@ export class Overlay {
   private blockOverlay: HTMLElement | null = null;
   private hoverBox: HoverBox;
   private areaSelectionBox: AreaSelectionBox;
-  private layoutMode: LayoutMode;
   private markerManager: MarkerManager;
   private toolbar: Toolbar;
   private feedbackModal: FeedbackModal;
@@ -73,6 +71,7 @@ export class Overlay {
   private markersVisible = true;
   private targetElement: HTMLElement | null = null;
   private isModalOpen = false;
+  private isAreaSelectActive = false;
 
   // Track drag state for area selection
   private isDragging = false;
@@ -102,7 +101,6 @@ export class Overlay {
 
     this.hoverBox = new HoverBox(this.shadowRoot);
     this.areaSelectionBox = new AreaSelectionBox(this.shadowRoot);
-    this.layoutMode = new LayoutMode(this.shadowRoot);
     this.markerManager = new MarkerManager(this.shadowRoot, settings as any, {
       onEdit: (id) => this.handleEditFeedback(id),
       onDelete: (id) => this.handleDeleteFeedback(id),
@@ -180,11 +178,13 @@ export class Overlay {
 
   private handleMouseDown = (e: MouseEvent) => {
     if (!this.isActive || this.isPaused || this.isModalOpen) return;
+
+    // Only initiate drag selection if area select mode is active
+    if (!this.isAreaSelectActive) return;
+
     const target = e.target as HTMLElement;
     if (this.shadowRoot.contains(target) || target === this.container) return;
 
-    // Only initiate drag selection if blocking is enabled, so it doesn't conflict with normal clicks
-    // Wait, area selection should probably always be possible if we drag. 
     // We'll initiate dragging if they click and move.
     this.isDragging = false;
     this.dragStartX = e.clientX;
@@ -194,7 +194,7 @@ export class Overlay {
   private handleMouseMove = (e: MouseEvent) => {
     if (!this.isActive || this.isPaused || this.isModalOpen) return;
 
-    if (e.buttons === 1) { // Left mouse button is held down
+    if (this.isAreaSelectActive && e.buttons === 1) { // Left mouse button is held down
       const distance = Math.sqrt(Math.pow(e.clientX - this.dragStartX, 2) + Math.pow(e.clientY - this.dragStartY, 2));
       if (distance > 5) {
         if (!this.isDragging) {
@@ -208,6 +208,13 @@ export class Overlay {
     }
 
     if (this.isDragging) return;
+
+    // If area select mode is active, we don't hover elements
+    if (this.isAreaSelectActive) {
+      this.hoverBox.hide();
+      this.targetElement = null;
+      return;
+    }
 
     const target = document.elementFromPoint(e.clientX, e.clientY);
     if (!target || target === this.container || target === this.blockOverlay) {
@@ -236,8 +243,9 @@ export class Overlay {
         const target = document.elementFromPoint(areaRect.x + areaRect.width / 2, areaRect.y + areaRect.height / 2) as HTMLElement;
         this.promptForFeedback(target || document.body, areaRect);
         
-        // Prevent click from firing by stopping propagation in capturing phase
-        // Note: click happens after mouseup, so we rely on this.isDragging check in click to avoid double prompt
+        // Turn off Area Select Mode after selection
+        this.isAreaSelectActive = false;
+        this.toolbar.toggleAreaSelect(false);
       }
     }
   };
@@ -260,14 +268,14 @@ export class Overlay {
 
     // Check if clicking on the block overlay or if blocking is enabled
     // We prioritize feedback selection over blocking
-    if (this.targetElement) {
+    if (this.targetElement && !this.isAreaSelectActive) {
       e.preventDefault();
       e.stopPropagation();
       this.promptForFeedback(this.targetElement);
       return;
     }
 
-    if (this.settings.blockInteractions || target === this.blockOverlay) {
+    if (this.settings.blockInteractions || target === this.blockOverlay || this.isAreaSelectActive) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -411,7 +419,7 @@ export class Overlay {
     try {
       const fmt = new MarkdownFormatter();
       const markdown = fmt.formatItem(item, this.settings as any);
-      await navigator.clipboard.writeText(markdown);
+      await this.copyToClipboard(markdown);
     } catch (e) {
       console.error('Failed to copy feedback item:', e);
     }
@@ -438,9 +446,15 @@ export class Overlay {
   private setupToolbarListeners() {
     this.toolbar.onPauseToggle = () => this.togglePause();
     this.toolbar.onMarkersToggle = () => this.toggleMarkers();
-    this.toolbar.onLayoutToggle = () => this.layoutMode.toggle();
+    this.toolbar.onAreaSelectToggle = () => {
+      this.isAreaSelectActive = !this.isAreaSelectActive;
+      if (this.isAreaSelectActive) {
+        this.hoverBox.hide();
+        this.targetElement = null;
+      }
+    };
     this.toolbar.onCopy = () => this.copyFeedback();
-    this.toolbar.onCopyJson = () => this.copyJson();
+    this.toolbar.onDownloadJson = () => this.downloadJson();
     this.toolbar.onGithubCreate = () => this.createGithubIssue();
     this.toolbar.onClear = () => this.clearAll();
     this.toolbar.onWebhookSend = () => this.sendToWebhook();
@@ -548,6 +562,8 @@ export class Overlay {
     this.removeEventListeners();
     this.removePauseStyles();
     this.container.remove();
+    this.isAreaSelectActive = false;
+    this.toolbar.toggleAreaSelect(false);
     
     if (this.stopRecording) {
       this.stopRecording();
@@ -597,10 +613,43 @@ export class Overlay {
     this.toolbar.setMarkersVisible(this.markersVisible);
   }
 
+  async copyToClipboard(text: string): Promise<boolean> {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (err) {
+        console.warn('[Pinmark] navigator.clipboard failed, trying fallback:', err);
+      }
+    }
+
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    let success = false;
+    try {
+      success = document.execCommand('copy');
+    } catch (err) {
+      console.error('[Pinmark] Fallback copy failed:', err);
+    }
+    
+    document.body.removeChild(textArea);
+    return success;
+  }
+
   async copyFeedback() {
     const markdown = this.feedbackManager.toMarkdown();
-    await navigator.clipboard.writeText(markdown);
-    this.toolbar.showCopySuccess();
+    const success = await this.copyToClipboard(markdown);
+    if (success) {
+      this.toolbar.showCopySuccess();
+    }
 
     if (this.settings.clearAfterCopy) {
       this.clearAll();
@@ -609,7 +658,25 @@ export class Overlay {
 
   async copyJson() {
     const data = this.feedbackManager.getAll();
-    await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    await this.copyToClipboard(JSON.stringify(data, null, 2));
+
+    if (this.settings.clearAfterCopy) {
+      this.clearAll();
+    }
+  }
+
+  downloadJson() {
+    const data = this.feedbackManager.getAll();
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pinmark-annotations-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 
     if (this.settings.clearAfterCopy) {
       this.clearAll();

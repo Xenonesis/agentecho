@@ -98,7 +98,7 @@ const TOOLBAR_STYLES = `
 const ICONS = {
   pause: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`,
   play: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
-  layout: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>`,
+  areaSelect: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-dasharray="3 3"/></svg>`,
   eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
   eyeOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`,
   copy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
@@ -116,14 +116,14 @@ export class Toolbar {
   private isPaused = false;
   private markersVisible = true;
   private sendBtn: HTMLButtonElement | null = null;
-  private layoutBtn: HTMLButtonElement | null = null;
-  private isLayoutActive = false;
+  private areaSelectBtn: HTMLButtonElement | null = null;
+  private isAreaSelectActive = false;
 
   onPauseToggle?: () => void;
   onMarkersToggle?: () => void;
-  onLayoutToggle?: () => void;
+  onAreaSelectToggle?: () => void;
   onCopy?: () => void;
-  onCopyJson?: () => void;
+  onDownloadJson?: () => void;
   onGithubCreate?: () => void;
   onClear?: () => void;
   onWebhookSend?: () => void;
@@ -209,12 +209,11 @@ export class Toolbar {
     const divider1 = document.createElement('div');
     divider1.className = 'pinmark-toolbar-divider';
 
-    this.layoutBtn = this.createButton('layout', 'Toggle Layout Mode', 'layout');
-    this.layoutBtn.onclick = (e) => {
+    this.areaSelectBtn = this.createButton('areaSelect', 'Toggle Area Select Mode', 'area-select');
+    this.areaSelectBtn.onclick = (e) => {
       e.stopPropagation();
-      this.isLayoutActive = !this.isLayoutActive;
-      this.layoutBtn!.style.color = this.isLayoutActive ? 'var(--pmk-accent, #3b82f6)' : '';
-      this.onLayoutToggle?.();
+      this.toggleAreaSelect();
+      this.onAreaSelectToggle?.();
     };
 
     const copyBtn = this.createButton('copy', 'Copy Annotations', 'copy');
@@ -230,16 +229,16 @@ export class Toolbar {
       }, 1500);
     };
 
-    const copyJsonBtn = this.createButton('copyJson', 'Copy JSON Data', 'copy-json');
-    copyJsonBtn.onclick = (e) => {
+    const downloadJsonBtn = this.createButton('copyJson', 'Download JSON Data', 'download-json');
+    downloadJsonBtn.onclick = (e) => {
       e.stopPropagation();
-      const originalIcon = copyJsonBtn.innerHTML;
-      copyJsonBtn.innerHTML = ICONS.check;
-      copyJsonBtn.style.background = 'var(--pmk-success, #22c55e)';
-      this.onCopyJson?.();
+      const originalIcon = downloadJsonBtn.innerHTML;
+      downloadJsonBtn.innerHTML = ICONS.check;
+      downloadJsonBtn.style.background = 'var(--pmk-success, #22c55e)';
+      this.onDownloadJson?.();
       setTimeout(() => {
-        copyJsonBtn.innerHTML = originalIcon;
-        copyJsonBtn.style.background = '';
+        downloadJsonBtn.innerHTML = originalIcon;
+        downloadJsonBtn.style.background = '';
       }, 1500);
     };
 
@@ -288,11 +287,11 @@ export class Toolbar {
     };
 
     toolbar.appendChild(pauseBtn);
-    toolbar.appendChild(this.layoutBtn);
+    toolbar.appendChild(this.areaSelectBtn);
     toolbar.appendChild(eyeBtn);
     toolbar.appendChild(divider1);
     toolbar.appendChild(copyBtn);
-    toolbar.appendChild(copyJsonBtn);
+    toolbar.appendChild(downloadJsonBtn);
     toolbar.appendChild(githubBtn);
     toolbar.appendChild(clearBtn);
     toolbar.appendChild(settingsBtn);
@@ -385,6 +384,19 @@ export class Toolbar {
         copyBtn.innerHTML = originalIcon;
         copyBtn.style.background = '';
       }, 1500);
+    }
+  }
+
+  toggleAreaSelect(active?: boolean) {
+    this.isAreaSelectActive = active !== undefined ? active : !this.isAreaSelectActive;
+    if (this.areaSelectBtn) {
+      if (this.isAreaSelectActive) {
+        this.areaSelectBtn.classList.add('active');
+        this.areaSelectBtn.style.color = 'var(--pmk-accent, #3b82f6)';
+      } else {
+        this.areaSelectBtn.classList.remove('active');
+        this.areaSelectBtn.style.color = '';
+      }
     }
   }
 }
