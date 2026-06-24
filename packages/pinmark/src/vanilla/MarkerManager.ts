@@ -7,6 +7,13 @@ export interface MarkerCallbacks {
   onCopy: (id: string) => void;
 }
 
+const ICONS = {
+  edit: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+  copy: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`,
+  check: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+  delete: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`
+};
+
 const MARKER_STYLES = (color: string) => `
   .pinmark-markers-container {
     position: absolute;
@@ -48,19 +55,21 @@ const MARKER_STYLES = (color: string) => `
 
   .pinmark-marker-popup {
     position: absolute;
-    bottom: calc(100% + 8px);
+    bottom: calc(100% + 10px);
     left: 50%;
     transform: translateX(-50%);
-    background: var(--pmk-bg);
+    background: rgba(24, 24, 27, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    padding: 10px 12px;
-    min-width: 180px;
+    padding: 12px 14px;
+    min-width: 200px;
     max-width: 280px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.15s ease-out, visibility 0.15s ease-out;
+    transition: opacity 0.15s ease-out, visibility 0.15s ease-out, transform 0.15s ease-out;
     z-index: 2147483646;
   }
 
@@ -71,58 +80,56 @@ const MARKER_STYLES = (color: string) => `
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
-    border-top-color: var(--pmk-bg);
+    border-top-color: rgba(24, 24, 27, 0.95);
   }
 
   .pinmark-marker:hover .pinmark-marker-popup {
     opacity: 1;
     visibility: visible;
     pointer-events: all;
+    transform: translateX(-50%) translateY(-2px);
   }
 
   .pinmark-marker-comment {
-    color: var(--pmk-text);
+    color: rgba(255, 255, 255, 0.95);
     font-size: 13px;
-    line-height: 1.4;
-    margin-bottom: 10px;
+    line-height: 1.5;
+    margin-bottom: 12px;
     word-wrap: break-word;
     white-space: pre-wrap;
+    font-weight: 400;
   }
 
   .pinmark-marker-actions {
     display: flex;
     gap: 6px;
-    border-top: 1px solid var(--pmk-border);
-    padding-top: 10px;
+    justify-content: flex-end;
+    align-items: center;
   }
 
   .pinmark-marker-btn {
-    flex: 1;
-    padding: 6px 10px;
-    font-size: 12px;
-    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
-    color: white;
-    transition: background 0.15s ease-out;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: all 0.15s ease;
+    padding: 0;
   }
 
-  .pinmark-marker-btn.edit {
-    background: var(--pmk-accent);
-  }
-
-  .pinmark-marker-btn.edit:hover {
-    background: #2563eb;
-  }
-
-  .pinmark-marker-btn.delete {
-    background: var(--pmk-danger);
+  .pinmark-marker-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
   }
 
   .pinmark-marker-btn.delete:hover {
-    background: #dc2626;
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
   }
 `;
 
@@ -184,38 +191,38 @@ export class MarkerManager {
 
     const editBtn = document.createElement('button');
     editBtn.className = 'pinmark-marker-btn edit';
-    editBtn.textContent = 'Edit';
+    editBtn.innerHTML = ICONS.edit;
+    editBtn.title = 'Edit';
     editBtn.onclick = (e) => {
       e.stopPropagation();
       e.preventDefault();
       this.callbacks.onEdit(feedback.id);
     };
 
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'pinmark-marker-btn copy';
+    copyBtn.innerHTML = ICONS.copy;
+    copyBtn.title = 'Copy';
+    copyBtn.onclick = async (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      copyBtn.innerHTML = ICONS.check;
+      copyBtn.style.color = '#22c55e';
+      setTimeout(() => {
+        copyBtn.innerHTML = ICONS.copy;
+        copyBtn.style.color = '';
+      }, 1000);
+      this.callbacks.onCopy(feedback.id);
+    };
+
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'pinmark-marker-btn delete';
-    deleteBtn.textContent = 'Delete';
+    deleteBtn.innerHTML = ICONS.delete;
+    deleteBtn.title = 'Delete';
     deleteBtn.onclick = (e) => {
       e.stopPropagation();
       e.preventDefault();
       this.callbacks.onDelete(feedback.id);
-    };
-
-    const copyBtn = document.createElement('button');
-    copyBtn.className = 'pinmark-marker-btn';
-    copyBtn.textContent = 'Copy';
-    copyBtn.style.background = '#6b7280';
-    copyBtn.onclick = async (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      // Visual feedback "Copied" briefly
-      const prev = copyBtn.textContent;
-      copyBtn.textContent = '✓ Copied';
-      copyBtn.style.background = '#22c55e';
-      setTimeout(() => {
-        copyBtn.textContent = prev;
-        copyBtn.style.background = '#6b7280';
-      }, 900);
-      this.callbacks.onCopy(feedback.id);
     };
 
     actions.appendChild(editBtn);
