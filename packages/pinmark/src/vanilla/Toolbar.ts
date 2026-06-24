@@ -104,20 +104,24 @@ const ICONS = {
   settings: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
   github: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>`,
   exit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
-  send: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`
+  send: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
+  layout: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="9" x2="9" y2="21"/></svg>`
 };
 
 export class Toolbar {
   private element: HTMLElement;
   private isPaused = false;
   private markersVisible = true;
+  private isLayoutMode = false;
   private sendBtn: HTMLButtonElement | null = null;
   private areaSelectBtn: HTMLButtonElement | null = null;
+  private layoutBtn: HTMLButtonElement | null = null;
   private isAreaSelectActive = false;
 
   onPauseToggle?: () => void;
   onMarkersToggle?: () => void;
   onAreaSelectToggle?: () => void;
+  onLayoutModeToggle?: () => void;
   onCopy?: () => void;
   onDownloadJson?: () => void;
   onGithubCreate?: () => void;
@@ -194,12 +198,19 @@ export class Toolbar {
       this.onPauseToggle?.();
     };
 
-    const eyeBtn = this.createButton('eye', 'Toggle markers', 'markers');
+    const eyeBtn = this.createButton('eye', 'Toggle markers [H]', 'markers');
     eyeBtn.classList.add('active');
     eyeBtn.onclick = (e) => {
       e.stopPropagation();
       this.toggleMarkers();
       this.onMarkersToggle?.();
+    };
+
+    this.layoutBtn = this.createButton('layout', 'Layout Mode [L]', 'layout') as HTMLButtonElement;
+    this.layoutBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.setLayoutMode(!this.isLayoutMode);
+      this.onLayoutModeToggle?.();
     };
 
     const divider1 = document.createElement('div');
@@ -282,6 +293,7 @@ export class Toolbar {
     toolbar.appendChild(pauseBtn);
     toolbar.appendChild(this.areaSelectBtn);
     toolbar.appendChild(eyeBtn);
+    toolbar.appendChild(this.layoutBtn!);
     toolbar.appendChild(divider1);
     toolbar.appendChild(copyBtn);
     toolbar.appendChild(downloadJsonBtn);
@@ -398,6 +410,18 @@ export class Toolbar {
       } else {
         this.areaSelectBtn.classList.remove('active');
         this.areaSelectBtn.style.color = '';
+      }
+    }
+  }
+  setLayoutMode(isLayoutMode: boolean) {
+    this.isLayoutMode = isLayoutMode;
+    if (this.layoutBtn) {
+      if (isLayoutMode) {
+        this.layoutBtn.classList.add('active');
+        this.layoutBtn.style.color = 'var(--pmk-accent, #3b82f6)';
+      } else {
+        this.layoutBtn.classList.remove('active');
+        this.layoutBtn.style.color = '';
       }
     }
   }

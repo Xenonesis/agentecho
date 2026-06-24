@@ -4,6 +4,7 @@ import { MarkerManager } from './MarkerManager';
 import { Toolbar } from './Toolbar';
 import { FeedbackModal } from './FeedbackModal';
 import { ElementAnalyzer } from './ElementAnalyzer';
+import { FrameworkDetector } from './FrameworkDetector';
 import { MarkdownFormatter } from './MarkdownFormatter';
 import { FeedbackManager } from '../core/FeedbackManager';
 import type { PinmarkSettings, PinmarkConfig } from '../core/types';
@@ -62,6 +63,7 @@ export class Overlay {
   private toolbar: Toolbar;
   private feedbackModal: FeedbackModal;
   private elementAnalyzer: ElementAnalyzer;
+  private frameworkDetector: FrameworkDetector;
   private feedbackManager: FeedbackManager;
   private settings: PinmarkSettings;
   private config: PinmarkConfig;
@@ -69,9 +71,16 @@ export class Overlay {
   get isActive() { return this._isActive; }
   private isPaused = false;
   private markersVisible = true;
+  private isLayoutMode = false;
   private targetElement: HTMLElement | null = null;
   private isModalOpen = false;
   private isAreaSelectActive = false;
+
+  // Text selection floating button
+  private selectionBtn: HTMLElement | null = null;
+  private selectionTarget: HTMLElement | null = null;
+  private selectionText: string = '';
+  private selectionRect: DOMRect | null = null;
 
   // Track drag state for area selection
   private isDragging = false;
@@ -107,6 +116,7 @@ export class Overlay {
       onCopy: (id) => this.handleCopyFeedback(id),
     });
     this.elementAnalyzer = new ElementAnalyzer();
+    this.frameworkDetector = new FrameworkDetector();
     this.toolbar = new Toolbar(this.shadowRoot);
     this.feedbackModal = new FeedbackModal(this.shadowRoot);
 
@@ -150,13 +160,20 @@ export class Overlay {
 
     if (e.key === 'Escape') {
       e.preventDefault();
-      this.deactivate();
+      if (this.isLayoutMode) {
+        this.toggleLayoutMode(false);
+      } else {
+        this.deactivate();
+      }
     } else if (e.key.toLowerCase() === 'p') {
       e.preventDefault();
       this.togglePause();
     } else if (e.key.toLowerCase() === 'h') {
       e.preventDefault();
       this.toggleMarkers();
+    } else if (e.key.toLowerCase() === 'l') {
+      e.preventDefault();
+      this.toggleLayoutMode();
     } else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey) {
       // Only trigger if just 'c' is pressed (not Ctrl+C which is copy text)
       e.preventDefault();
@@ -233,22 +250,8 @@ export class Overlay {
     }
   };
 
-  private handleMouseUp = () => {
-    if (this.isDragging) {
-      const areaRect = this.areaSelectionBox.end();
-      this.isDragging = false;
-      
-      if (areaRect) {
-        // Find a representative element for the area, or use body
-        const target = document.elementFromPoint(areaRect.x + areaRect.width / 2, areaRect.y + areaRect.height / 2) as HTMLElement;
-        this.promptForFeedback(target || document.body, areaRect);
-        
-        // Turn off Area Select Mode after selection
-        this.isAreaSelectActive = false;
-        this.toolbar.toggleAreaSelect(false);
-      }
-    }
-  };
+
+
 
   private handleResize = () => {
     if (this.isActive && !this.isPaused) {
@@ -318,7 +321,42 @@ export class Overlay {
       this.container.style.display = 'block';
     }
 
-    const result = await this.feedbackModal.show(element, undefined, screenshot);
+    // Gather component info and computed styles for the modal
+    const componentInfo = (() => {
+      try { return this.frameworkDetector.detect(element); } catch { return undefined; }
+    })();
+    const computedStylesData = (() => {
+      try {
+        const styles = window.getComputedStyle(element);
+        const keys = ['display','flex-direction','align-items','justify-content','gap','color','background-color','font-size','font-weight','font-family','padding','margin','border-radius','width','height','position'];
+        const result: Record<string,string> = {};
+        for (const k of keys) {
+          const v = styles.getPropertyValue(k);
+          if (v && v !== 'none' && v !== 'normal' && v !== '0px' && v !== 'rgba(0, 0, 0, 0)' && v !== 'auto') result[k] = v;
+        }
+        return result;
+      } catch { return {}; }
+    })();
+
+    // Smart name for the element
+    const smartName = (() => {
+      const tag = element.tagName.toLowerCase();
+      if (['button','a','label','h1','h2','h3','h4','h5','h6'].includes(tag)) {
+        const text = element.textContent?.trim();
+        if (text && text.length < 60) return text;
+      }
+      if (tag === 'input' || tag === 'textarea') return (element as HTMLInputElement).placeholder || element.getAttribute('name') || undefined;
+      if (tag === 'img') return (element as HTMLImageElement).alt || undefined;
+      return undefined;
+    })();
+
+    const result = await this.feedbackModal.show(element, {
+      screenshotUrl: screenshot,
+      computedStyles: computedStylesData,
+      selectionText,
+      componentInfo: componentInfo ? { framework: componentInfo.framework, name: componentInfo.name, hierarchy: componentInfo.hierarchy } : undefined,
+      smartName
+    });
     this.isModalOpen = false;
 
     if (!result) return;
@@ -456,8 +494,10 @@ export class Overlay {
       if (this.isAreaSelectActive) {
         this.hoverBox.hide();
         this.targetElement = null;
+        if (this.isLayoutMode) this.toggleLayoutMode(false);
       }
     };
+    this.toolbar.onLayoutModeToggle = () => this.toggleLayoutMode();
     this.toolbar.onCopy = () => this.copyFeedback();
     this.toolbar.onDownloadJson = () => this.downloadJson();
     this.toolbar.onGithubCreate = () => this.createGithubIssue();
@@ -479,6 +519,359 @@ export class Overlay {
     if (this.settings.webhookUrl) {
       this.toolbar.setWebhookEnabled(true);
     }
+  }
+
+  // ── Text-selection floating button ──────────────────────────────────────
+  private handleMouseUp = () => {
+    if (this.isDragging) {
+      const areaRect = this.areaSelectionBox.end();
+      this.isDragging = false;
+      if (areaRect) {
+        const target = document.elementFromPoint(areaRect.x + areaRect.width / 2, areaRect.y + areaRect.height / 2) as HTMLElement;
+        this.promptForFeedback(target || document.body, areaRect);
+        this.isAreaSelectActive = false;
+        this.toolbar.toggleAreaSelect(false);
+      }
+      return;
+    }
+
+    // Check for text selection
+    if (!this.isActive || this.isPaused || this.isModalOpen || this.isAreaSelectActive) return;
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      const text = sel.toString().trim();
+      if (text.length > 0) {
+        const range = sel.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        this.selectionText = text;
+        this.selectionRect = rect;
+        this.selectionTarget = (range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+          ? range.commonAncestorContainer.parentElement
+          : range.commonAncestorContainer) as HTMLElement;
+        this.showSelectionButton(rect);
+        return;
+      }
+    }
+    this.hideSelectionButton();
+  };
+
+  private showSelectionButton(rect: DOMRect) {
+    this.hideSelectionButton();
+
+    const btn = document.createElement('div');
+    btn.className = 'pinmark-selection-btn';
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Add Annotation`;
+    
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    btn.style.cssText = `
+      position: absolute;
+      top: ${rect.top + scrollTop - 36}px;
+      left: ${rect.left + scrollLeft + rect.width / 2}px;
+      transform: translateX(-50%);
+      background: #18181b;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: system-ui, -apple-system, sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      z-index: 2147483646;
+      pointer-events: all;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      white-space: nowrap;
+      animation: pmkFadeIn 0.12s ease;
+    `;
+
+    // Add animation keyframe if missing
+    if (!this.shadowRoot.querySelector('#pmk-selection-anim')) {
+      const animStyle = document.createElement('style');
+      animStyle.id = 'pmk-selection-anim';
+      animStyle.textContent = '@keyframes pmkFadeIn { from { opacity: 0; transform: translateX(-50%) translateY(4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }';
+      this.shadowRoot.appendChild(animStyle);
+    }
+
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const target = this.selectionTarget || document.body;
+      const savedText = this.selectionText;
+      const savedRect = this.selectionRect;
+      this.hideSelectionButton();
+      window.getSelection()?.removeAllRanges();
+      this.promptForFeedbackWithSelection(target, savedText, savedRect!);
+    };
+
+    this.shadowRoot.appendChild(btn);
+    this.selectionBtn = btn;
+  }
+
+  private hideSelectionButton() {
+    if (this.selectionBtn) {
+      this.selectionBtn.remove();
+      this.selectionBtn = null;
+    }
+    this.selectionText = '';
+    this.selectionRect = null;
+    this.selectionTarget = null;
+  }
+
+  private async promptForFeedbackWithSelection(element: HTMLElement, selText: string, selRect: DOMRect) {
+    this.isModalOpen = true;
+    this.hoverBox.hide();
+
+    let screenshot: string | undefined;
+    try {
+      this.container.style.display = 'none';
+      const canvas = await html2canvas(element, {
+        useCORS: true,
+        logging: false,
+        scale: window.devicePixelRatio || 1,
+        ignoreElements: (node) => node.tagName === 'SCRIPT' || node.tagName === 'NOSCRIPT' || node.tagName === 'IFRAME' || node.tagName === 'LINK'
+      });
+      screenshot = canvas.toDataURL('image/jpeg', 0.8);
+    } catch (e) {
+      console.warn('[Pinmark] Screenshot failed:', e);
+    } finally {
+      this.container.style.display = 'block';
+    }
+
+    const componentInfo = (() => { try { return this.frameworkDetector.detect(element); } catch { return undefined; } })();
+
+    const result = await this.feedbackModal.show(element, {
+      screenshotUrl: screenshot,
+      selectionText: selText,
+      componentInfo: componentInfo ? { framework: componentInfo.framework, name: componentInfo.name, hierarchy: componentInfo.hierarchy } : undefined
+    });
+    this.isModalOpen = false;
+    if (!result) return;
+
+    const elementInfo = this.elementAnalyzer.analyze(element);
+    elementInfo.selectionText = selText;
+    elementInfo.boundingRect = { x: selRect.x, y: selRect.y, width: selRect.width, height: selRect.height, top: selRect.top, right: selRect.right, bottom: selRect.bottom, left: selRect.left };
+    if (result.screenshot) elementInfo.screenshot = result.screenshot;
+    else if (screenshot) elementInfo.screenshot = screenshot;
+
+    const state: any = {};
+    try { state.localStorage = { ...window.localStorage }; state.sessionStorage = { ...window.sessionStorage }; state.cookies = document.cookie; } catch {}
+
+    const feedback: FeedbackItem = {
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+      index: this.feedbackManager.getAll().length + 1,
+      comment: result.comment,
+      timestamp: Date.now(),
+      url: this.config.url || window.location.href,
+      element: elementInfo,
+      state,
+      consoleLogs: [...this.consoleLogs],
+      networkRequests: [...this.networkRequests],
+      sessionRecording: [...this.rrwebEvents],
+    };
+
+    this.feedbackManager.add(feedback);
+    this.markerManager.addMarker(feedback);
+  }
+
+  // ── Layout Mode ─────────────────────────────────────────────────────────
+  toggleLayoutMode(force?: boolean) {
+    this.isLayoutMode = force !== undefined ? force : !this.isLayoutMode;
+    this.toolbar.setLayoutMode(this.isLayoutMode);
+    if (this.isLayoutMode) {
+      this.showLayoutPanel();
+    } else {
+      this.hideLayoutPanel();
+    }
+  }
+
+  private layoutPanel: HTMLElement | null = null;
+
+  private showLayoutPanel() {
+    if (this.layoutPanel) return;
+
+    const COMPONENTS = [
+      { icon: '📄', name: 'Hero Section', kind: 'hero' },
+      { icon: '🧭', name: 'Navbar', kind: 'navbar' },
+      { icon: '🃏', name: 'Card', kind: 'card' },
+      { icon: '🔘', name: 'Button', kind: 'button' },
+      { icon: '🖼️', name: 'Image', kind: 'image' },
+      { icon: '📝', name: 'Form', kind: 'form' },
+      { icon: '📋', name: 'Table', kind: 'table' },
+      { icon: '📊', name: 'Chart', kind: 'chart' },
+      { icon: '📦', name: 'Modal', kind: 'modal' },
+      { icon: '🗂️', name: 'Tabs', kind: 'tabs' },
+      { icon: '🔽', name: 'Dropdown', kind: 'dropdown' },
+      { icon: '🔔', name: 'Alert', kind: 'alert' },
+      { icon: '⭐', name: 'Badge', kind: 'badge' },
+      { icon: '📊', name: 'Stats', kind: 'stats' },
+      { icon: '🔗', name: 'Link', kind: 'link' },
+      { icon: '☰', name: 'Sidebar', kind: 'sidebar' },
+      { icon: '🦶', name: 'Footer', kind: 'footer' },
+      { icon: '🔍', name: 'Search Bar', kind: 'search' },
+      { icon: '🖊️', name: 'Input', kind: 'input' },
+      { icon: '📌', name: 'Breadcrumb', kind: 'breadcrumb' },
+      { icon: '📄', name: 'Text Block', kind: 'text' },
+      { icon: '🌐', name: 'Grid', kind: 'grid' },
+      { icon: '↔️', name: 'Divider', kind: 'divider' },
+      { icon: '🎯', name: 'CTA Section', kind: 'cta' },
+      { icon: '💬', name: 'Testimonial', kind: 'testimonial' },
+      { icon: '🏷️', name: 'Pricing Card', kind: 'pricing' },
+      { icon: '📷', name: 'Gallery', kind: 'gallery' },
+      { icon: '🗺️', name: 'Map', kind: 'map' },
+      { icon: '🎬', name: 'Video', kind: 'video' },
+      { icon: '💡', name: 'Tooltip', kind: 'tooltip' },
+    ];
+
+    const panel = document.createElement('div');
+    panel.style.cssText = `
+      position: fixed;
+      top: 70px;
+      left: 16px;
+      width: 220px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+      background: rgba(18, 18, 20, 0.97);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 12px;
+      z-index: 2147483645;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      pointer-events: all;
+      font-family: system-ui, -apple-system, sans-serif;
+    `;
+
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.08);';
+    header.innerHTML = `
+      <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);">Layout Mode</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;">Press L to close</span>
+    `;
+    panel.appendChild(header);
+
+    // Wireframe toggle
+    let wireframeActive = false;
+    const wireframeOverlay = document.createElement('div');
+    wireframeOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);pointer-events:none;z-index:2147483640;display:none;';
+    this.shadowRoot.appendChild(wireframeOverlay);
+
+    const wireBtn = document.createElement('button');
+    wireBtn.style.cssText = 'width:100%;padding:7px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:rgba(255,255,255,0.7);font-size:12px;cursor:pointer;margin-bottom:10px;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;gap:6px;';
+    wireBtn.innerHTML = '🔲 Wireframe Mode';
+    wireBtn.onclick = () => {
+      wireframeActive = !wireframeActive;
+      wireframeOverlay.style.display = wireframeActive ? 'block' : 'none';
+      wireBtn.style.background = wireframeActive ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)';
+      wireBtn.style.borderColor = wireframeActive ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.1)';
+      wireBtn.style.color = wireframeActive ? '#60a5fa' : 'rgba(255,255,255,0.7)';
+    };
+    panel.appendChild(wireBtn);
+
+    const gridLabel = document.createElement('div');
+    gridLabel.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em;padding:0 2px;';
+    gridLabel.textContent = 'Components';
+    panel.appendChild(gridLabel);
+
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:4px;';
+
+    for (const comp of COMPONENTS) {
+      const item = document.createElement('div');
+      item.style.cssText = 'padding:8px 6px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:7px;cursor:grab;text-align:center;font-size:11px;color:rgba(255,255,255,0.6);transition:all 0.15s;user-select:none;';
+      item.innerHTML = `<div style="font-size:18px;margin-bottom:3px;">${comp.icon}</div>${comp.name}`;
+      item.title = `Drag to place ${comp.name}`;
+      item.draggable = true;
+
+      item.onmouseenter = () => { item.style.background = 'rgba(59,130,246,0.1)'; item.style.borderColor = 'rgba(59,130,246,0.3)'; item.style.color = '#fff'; };
+      item.onmouseleave = () => { item.style.background = 'rgba(255,255,255,0.04)'; item.style.borderColor = 'rgba(255,255,255,0.06)'; item.style.color = 'rgba(255,255,255,0.6)'; };
+
+      item.ondragstart = (e) => {
+        e.dataTransfer?.setData('text/plain', JSON.stringify({ kind: comp.kind, name: comp.name }));
+      };
+
+      item.onclick = () => {
+        // Click to annotate at center viewport
+        const x = window.innerWidth / 2;
+        const y = window.innerHeight / 2;
+        this.addLayoutAnnotation(comp.kind, comp.name, x, y);
+      };
+
+      grid.appendChild(item);
+    }
+    panel.appendChild(grid);
+
+    // Drop handler on document
+    const onDragOver = (e: DragEvent) => { e.preventDefault(); };
+    const onDrop = (e: DragEvent) => {
+      e.preventDefault();
+      try {
+        const data = JSON.parse(e.dataTransfer?.getData('text/plain') || '{}');
+        if (data.kind) {
+          this.addLayoutAnnotation(data.kind, data.name, e.clientX, e.clientY);
+        }
+      } catch {}
+    };
+    document.addEventListener('dragover', onDragOver);
+    document.addEventListener('drop', onDrop);
+    (panel as any)._cleanup = () => {
+      document.removeEventListener('dragover', onDragOver);
+      document.removeEventListener('drop', onDrop);
+      wireframeOverlay.remove();
+    };
+
+    this.shadowRoot.appendChild(panel);
+    this.layoutPanel = panel;
+  }
+
+  private hideLayoutPanel() {
+    if (this.layoutPanel) {
+      const cleanup = (this.layoutPanel as any)._cleanup;
+      if (cleanup) cleanup();
+      this.layoutPanel.remove();
+      this.layoutPanel = null;
+    }
+  }
+
+  private async addLayoutAnnotation(_kind: string, name: string, clientX: number, clientY: number) {
+    const target = (document.elementFromPoint(clientX, clientY) as HTMLElement) || document.body;
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+    const placeholderRect = {
+      x: clientX + scrollLeft,
+      y: clientY + scrollTop,
+      width: 300,
+      height: 80,
+      top: clientY,
+      right: clientX + 300,
+      bottom: clientY + 80,
+      left: clientX
+    };
+
+    const elementInfo = this.elementAnalyzer.analyze(target);
+    elementInfo.boundingRect = placeholderRect;
+
+    const state: any = {};
+    const feedback: FeedbackItem = {
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+      index: this.feedbackManager.getAll().length + 1,
+      comment: `[Layout] Place ${name} here`,
+      timestamp: Date.now(),
+      url: this.config.url || window.location.href,
+      element: elementInfo,
+      state,
+      consoleLogs: [],
+      networkRequests: [],
+      sessionRecording: [],
+      areaRect: { x: placeholderRect.x, y: placeholderRect.y, width: placeholderRect.width, height: placeholderRect.height }
+    } as any;
+
+    this.feedbackManager.add(feedback);
+    this.markerManager.addMarker(feedback);
   }
 
   public async sendToWebhook() {
@@ -532,6 +925,8 @@ export class Overlay {
       this.blockOverlay = null;
     }
   }
+
+
 
   activate() {
     this._isActive = true;

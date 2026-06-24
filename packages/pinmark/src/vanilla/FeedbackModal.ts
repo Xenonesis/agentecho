@@ -15,22 +15,25 @@ const MODAL_STYLES = `
   }
 
   .pinmark-modal {
-    background: rgba(24, 24, 27, 0.95);
-    backdrop-filter: blur(12px);
+    background: rgba(24, 24, 27, 0.97);
+    backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 24px;
-    width: 420px;
+    width: 460px;
     max-width: 90vw;
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255,255,255,0.05);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   .pinmark-modal-title {
     color: rgba(255, 255, 255, 0.95);
-    font-size: 18px;
-    font-weight: 500;
-    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 14px 0;
+    letter-spacing: -0.01em;
   }
 
   .pinmark-modal-input {
@@ -38,7 +41,7 @@ const MODAL_STYLES = `
     padding: 12px 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.25);
     color: rgba(255, 255, 255, 0.9);
     font-size: 14px;
     outline: none;
@@ -47,47 +50,50 @@ const MODAL_STYLES = `
     resize: vertical;
     min-height: 80px;
     font-family: inherit;
+    line-height: 1.5;
   }
 
   .pinmark-modal-input:focus {
     border-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
   }
 
   .pinmark-modal-input::placeholder {
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.25);
   }
 
   .pinmark-modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
-    margin-top: 20px;
+    margin-top: 18px;
   }
 
   .pinmark-modal-btn {
-    padding: 8px 16px;
+    padding: 8px 18px;
     border: none;
-    border-radius: 6px;
-    font-size: 14px;
+    border-radius: 7px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
+    font-family: inherit;
   }
 
   .pinmark-modal-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 
   .pinmark-modal-btn.cancel {
     background: transparent;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(255,255,255,0.08);
   }
 
   .pinmark-modal-btn.cancel:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(255,255,255,0.8);
   }
 
   .pinmark-modal-btn.submit {
@@ -97,36 +103,153 @@ const MODAL_STYLES = `
 
   .pinmark-modal-btn.submit:hover:not(:disabled) {
     background: #e5e5e5;
+    transform: translateY(-1px);
   }
 
   .pinmark-modal-element-info {
     background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 7px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.55);
     font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .pinmark-modal-element-tag {
-    color: #f472b6;
+  .pinmark-modal-element-tag { color: #f472b6; }
+  .pinmark-modal-element-class { color: #60a5fa; }
+  .pinmark-modal-element-id { color: #fbbf24; }
+  .pinmark-modal-element-component { color: #34d399; margin-left: 8px; font-family: system-ui, sans-serif; }
+
+  /* Selection text highlight */
+  .pinmark-modal-selection {
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    font-style: italic;
+    line-height: 1.5;
   }
 
-  .pinmark-modal-element-class {
+  .pinmark-modal-selection::before {
+    content: '"';
     color: #60a5fa;
+    font-size: 16px;
+    font-style: normal;
+    margin-right: 2px;
+  }
+  .pinmark-modal-selection::after {
+    content: '"';
+    color: #60a5fa;
+    font-size: 16px;
+    font-style: normal;
+    margin-left: 2px;
   }
 
-  .pinmark-modal-element-id {
-    color: #fbbf24;
+  /* Computed Styles Panel */
+  .pinmark-modal-styles-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.4);
+    font-size: 11px;
+    padding: 6px 0;
+    margin-bottom: 12px;
+    user-select: none;
+    border: none;
+    background: none;
+    font-family: system-ui, sans-serif;
+    transition: color 0.15s;
+  }
+
+  .pinmark-modal-styles-toggle:hover {
+    color: rgba(255,255,255,0.7);
+  }
+
+  .pinmark-modal-styles-toggle-icon {
+    width: 12px;
+    height: 12px;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .pinmark-modal-styles-toggle-icon.open {
+    transform: rotate(90deg);
+  }
+
+  .pinmark-modal-styles-body {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 7px;
+    padding: 12px;
+    margin-bottom: 14px;
+    display: none;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .pinmark-modal-styles-body.visible {
+    display: block;
+  }
+
+  .pinmark-modal-style-row {
+    display: flex;
+    gap: 8px;
+    font-size: 11px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    line-height: 1.7;
+  }
+
+  .pinmark-modal-style-prop {
+    color: #f472b6;
+    flex-shrink: 0;
+    min-width: 130px;
+  }
+
+  .pinmark-modal-style-val {
+    color: #60a5fa;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Component tree */
+  .pinmark-modal-component-tree {
+    background: rgba(52, 211, 153, 0.06);
+    border: 1px solid rgba(52, 211, 153, 0.15);
+    border-radius: 7px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    font-size: 11px;
+    font-family: 'SF Mono', Monaco, monospace;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.8;
+  }
+
+  .pinmark-modal-component-name {
+    color: #34d399;
+    font-weight: 600;
   }
 `;
 
 export type ModalResult = { comment: string; screenshot?: string } | null;
+
+export interface ModalShowOptions {
+  existingComment?: string;
+  screenshotUrl?: string;
+  computedStyles?: Record<string, string>;
+  selectionText?: string;
+  componentInfo?: { framework: string; name: string; hierarchy?: string[] };
+  smartName?: string;
+}
 
 export class FeedbackModal {
   private shadowRoot: ShadowRoot;
@@ -148,24 +271,30 @@ export class FeedbackModal {
     (styleElement as HTMLStyleElement).textContent = MODAL_STYLES;
   }
 
-  show(element: HTMLElement, existingComment?: string, screenshotUrl?: string): Promise<ModalResult> {
+  show(element: HTMLElement, existingComment?: string, screenshotUrl?: string): Promise<ModalResult>;
+  show(element: HTMLElement, options?: ModalShowOptions): Promise<ModalResult>;
+  show(element: HTMLElement, existingCommentOrOptions?: string | ModalShowOptions, screenshotUrl?: string): Promise<ModalResult> {
     return new Promise((resolve) => {
       this.resolvePromise = resolve;
-      this.render(element, existingComment, screenshotUrl);
+      let opts: ModalShowOptions;
+      if (typeof existingCommentOrOptions === 'string' || existingCommentOrOptions === undefined) {
+        opts = { existingComment: existingCommentOrOptions, screenshotUrl };
+      } else {
+        opts = existingCommentOrOptions;
+      }
+      this.render(element, opts);
     });
   }
 
-  private render(element: HTMLElement, existingComment?: string, screenshotUrl?: string) {
-    // Create overlay
+  private render(element: HTMLElement, opts: ModalShowOptions) {
+    const { existingComment, screenshotUrl, computedStyles, selectionText, componentInfo, smartName } = opts;
+
     this.modalOverlay = document.createElement('div');
     this.modalOverlay.className = 'pinmark-modal-overlay';
     this.modalOverlay.onclick = (e) => {
-      if (e.target === this.modalOverlay) {
-        this.close(null);
-      }
+      if (e.target === this.modalOverlay) this.close(null);
     };
 
-    // Create modal
     const modal = document.createElement('div');
     modal.className = 'pinmark-modal';
 
@@ -174,37 +303,81 @@ export class FeedbackModal {
     title.className = 'pinmark-modal-title';
     title.textContent = existingComment ? 'Edit Feedback' : 'Add Feedback';
 
-    // Element info
+    // Element info row
     const elementInfo = document.createElement('div');
     elementInfo.className = 'pinmark-modal-element-info';
-    elementInfo.innerHTML = this.formatElementInfo(element);
+    elementInfo.innerHTML = this.formatElementInfo(element, smartName, componentInfo);
+
+    // Selection text badge (if text was selected)
+    if (selectionText) {
+      const selBadge = document.createElement('div');
+      selBadge.className = 'pinmark-modal-selection';
+      selBadge.textContent = selectionText.length > 100 ? selectionText.slice(0, 100) + '…' : selectionText;
+      modal.appendChild(title);
+      modal.appendChild(elementInfo);
+      modal.appendChild(selBadge);
+    } else {
+      modal.appendChild(title);
+      modal.appendChild(elementInfo);
+    }
+
+    // React component hierarchy
+    if (componentInfo && componentInfo.hierarchy && componentInfo.hierarchy.length > 1) {
+      const treeEl = document.createElement('div');
+      treeEl.className = 'pinmark-modal-component-tree';
+      const hierarchy = componentInfo.hierarchy.slice(-5); // last 5 in tree
+      treeEl.innerHTML = hierarchy.map((name, i) => {
+        const indent = '  '.repeat(i);
+        const isLast = i === hierarchy.length - 1;
+        return `<div>${indent}<span class="${isLast ? 'pinmark-modal-component-name' : ''}">${isLast ? '↳ ' : ''}${name}</span></div>`;
+      }).join('');
+      modal.appendChild(treeEl);
+    }
 
     // Input
     const input = document.createElement('textarea');
     input.className = 'pinmark-modal-input';
-    input.placeholder = 'Enter your feedback...';
+    input.placeholder = 'Enter your feedback... (Ctrl+Enter to submit)';
     input.value = existingComment || '';
+    modal.appendChild(input);
 
+    // Computed styles panel
+    if (computedStyles && Object.keys(computedStyles).length > 0) {
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'pinmark-modal-styles-toggle';
+      toggleBtn.type = 'button';
+      const chevronIcon = `<svg class="pinmark-modal-styles-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>`;
+      toggleBtn.innerHTML = `${chevronIcon} Computed Styles (${Object.keys(computedStyles).length})`;
+
+      const stylesBody = document.createElement('div');
+      stylesBody.className = 'pinmark-modal-styles-body';
+
+      for (const [prop, val] of Object.entries(computedStyles)) {
+        const row = document.createElement('div');
+        row.className = 'pinmark-modal-style-row';
+        row.innerHTML = `<span class="pinmark-modal-style-prop">${prop}:</span><span class="pinmark-modal-style-val">${val};</span>`;
+        stylesBody.appendChild(row);
+      }
+
+      toggleBtn.onclick = () => {
+        const isOpen = stylesBody.classList.toggle('visible');
+        const icon = toggleBtn.querySelector('.pinmark-modal-styles-toggle-icon') as HTMLElement;
+        if (icon) icon.classList.toggle('open', isOpen);
+      };
+
+      modal.appendChild(toggleBtn);
+      modal.appendChild(stylesBody);
+    }
+
+    // Screenshot canvas
     let drawnScreenshot: string | undefined = screenshotUrl;
-
     if (screenshotUrl) {
       const markupContainer = document.createElement('div');
-      markupContainer.style.marginTop = '16px';
-      markupContainer.style.position = 'relative';
-      markupContainer.style.border = '1px solid var(--pmk-border)';
-      markupContainer.style.borderRadius = '8px';
-      markupContainer.style.overflow = 'hidden';
-      markupContainer.style.background = '#000';
-      markupContainer.style.display = 'flex';
-      markupContainer.style.flexDirection = 'column';
+      markupContainer.style.cssText = 'margin-top:14px;position:relative;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;background:#000;display:flex;flex-direction:column;';
 
       const canvas = document.createElement('canvas');
-      canvas.style.maxWidth = '100%';
-      canvas.style.maxHeight = '200px';
-      canvas.style.objectFit = 'contain';
-      canvas.style.display = 'block';
-      canvas.style.cursor = 'crosshair';
-      
+      canvas.style.cssText = 'max-width:100%;max-height:180px;object-fit:contain;display:block;cursor:crosshair;';
+
       const ctx = canvas.getContext('2d');
       const img = new Image();
       img.onload = () => {
@@ -239,24 +412,14 @@ export class FeedbackModal {
 
       const hint = document.createElement('div');
       hint.textContent = 'Draw to highlight';
-      hint.style.fontSize = '12px';
-      hint.style.color = 'rgba(255,255,255,0.9)';
-      hint.style.padding = '6px 12px';
-      hint.style.background = 'rgba(0,0,0,0.6)';
-      hint.style.backdropFilter = 'blur(4px)';
-      hint.style.borderRadius = '20px';
-      hint.style.border = '1px solid rgba(255,255,255,0.1)';
-      hint.style.position = 'absolute';
-      hint.style.top = '12px';
-      hint.style.left = '50%';
-      hint.style.transform = 'translateX(-50%)';
-      hint.style.pointerEvents = 'none';
+      hint.style.cssText = 'font-size:11px;color:rgba(255,255,255,0.9);padding:5px 10px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border-radius:20px;border:1px solid rgba(255,255,255,0.1);position:absolute;top:10px;left:50%;transform:translateX(-50%);pointer-events:none;white-space:nowrap;';
 
       markupContainer.appendChild(canvas);
       markupContainer.appendChild(hint);
       modal.appendChild(markupContainer);
     }
 
+    // Actions
     const actions = document.createElement('div');
     actions.className = 'pinmark-modal-actions';
 
@@ -270,19 +433,14 @@ export class FeedbackModal {
     submitBtn.textContent = existingComment ? 'Save' : 'Add';
     submitBtn.onclick = () => {
       const comment = input.value.trim();
-      if (comment) {
-        this.close({ comment, screenshot: drawnScreenshot });
-      }
+      if (comment) this.close({ comment, screenshot: drawnScreenshot });
     };
 
-    // Handle keyboard
     input.onkeydown = (e) => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         const comment = input.value.trim();
-        if (comment) {
-          this.close({ comment, screenshot: drawnScreenshot });
-        }
+        if (comment) this.close({ comment, screenshot: drawnScreenshot });
       }
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -293,27 +451,32 @@ export class FeedbackModal {
 
     actions.appendChild(cancelBtn);
     actions.appendChild(submitBtn);
-
-    modal.appendChild(title);
-    modal.appendChild(elementInfo);
-    modal.appendChild(input);
     modal.appendChild(actions);
 
     this.modalOverlay.appendChild(modal);
     this.shadowRoot.appendChild(this.modalOverlay);
 
-    // Focus input
     setTimeout(() => input.focus(), 0);
   }
 
-  private formatElementInfo(element: HTMLElement): string {
+  private formatElementInfo(element: HTMLElement, smartName?: string, componentInfo?: { framework: string; name: string; hierarchy?: string[] }): string {
     const tag = element.tagName.toLowerCase();
     const id = element.id ? `<span class="pinmark-modal-element-id">#${element.id}</span>` : '';
     const classes = element.className && typeof element.className === 'string'
       ? element.className.split(' ').filter(c => c && !c.startsWith('pinmark')).slice(0, 3).map(c => `<span class="pinmark-modal-element-class">.${c}</span>`).join('')
       : '';
-    
-    return `<span class="pinmark-modal-element-tag">&lt;${tag}&gt;</span>${id}${classes}`;
+
+    let componentHTML = '';
+    if (componentInfo && componentInfo.name && componentInfo.name !== 'Unknown') {
+      const icon = componentInfo.framework === 'react' ? '⚛' : componentInfo.framework === 'vue' ? '💚' : '🔷';
+      componentHTML = `<span class="pinmark-modal-element-component">${icon} ${componentInfo.name}</span>`;
+    }
+
+    if (smartName) {
+      return `<span class="pinmark-modal-element-tag">&lt;${tag}&gt;</span> <span style="color:rgba(255,255,255,0.5)">"${smartName}"</span>${componentHTML}`;
+    }
+
+    return `<span class="pinmark-modal-element-tag">&lt;${tag}&gt;</span>${id}${classes}${componentHTML}`;
   }
 
   private close(result: ModalResult) {
