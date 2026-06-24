@@ -6,6 +6,7 @@ import { FeedbackModal } from './FeedbackModal';
 import { ElementAnalyzer } from './ElementAnalyzer';
 import { FrameworkDetector } from './FrameworkDetector';
 import { MarkdownFormatter } from './MarkdownFormatter';
+import { AnimationInspector, AnimationInfo, RecordedStep } from './AnimationInspector';
 import { FeedbackManager } from '../core/FeedbackManager';
 import type { PinmarkSettings, PinmarkConfig } from '../core/types';
 import type { PinmarkAnnotation as FeedbackItem } from '@pinmark/core';
@@ -76,6 +77,7 @@ export class Overlay {
   private isModalOpen = false;
   private isAreaSelectActive = false;
   private isMultiSelectActive = false;
+  private animationInspector: AnimationInspector;
 
   // Text selection floating button
   private selectionBtn: HTMLElement | null = null;
@@ -120,6 +122,9 @@ export class Overlay {
     this.frameworkDetector = new FrameworkDetector();
     this.toolbar = new Toolbar(this.shadowRoot);
     this.feedbackModal = new FeedbackModal(this.shadowRoot);
+    this.animationInspector = new AnimationInspector(this.shadowRoot);
+    
+    this.animationInspector.onAnnotate = (data) => this.handleAnimationAnnotation(data);
 
     this.setupToolbarListeners();
     this.loadExistingMarkers();
@@ -462,6 +467,48 @@ export class Overlay {
     await this.reindexMarkers();
   }
 
+  private async handleAnimationAnnotation(data: { animationData: AnimationInfo[]; steps: RecordedStep[]; element?: HTMLElement }) {
+    let comment = '';
+    if (data.animationData.length > 0) {
+      comment = `**Animations Detected:**\n${data.animationData.map(a => `- ${a.type === 'css-animation' ? 'Animation' : 'Transition'} (\`${a.name || a.property}\`): ${a.duration} ${a.timingFunction} ${a.iterationCount}`).join('\n')}`;
+    } else if (data.steps.length > 0) {
+      comment = `**Interaction Flow:**\n${data.steps.map(s => `${s.index}. ${s.type.toUpperCase()} on \`${s.elementTag}\` ${s.elementText ? `("${s.elementText}")` : ''}`).join('\n')}`;
+    }
+    
+    let elementInfo: any;
+    if (data.element) {
+      elementInfo = this.elementAnalyzer.analyze(data.element);
+    } else {
+      elementInfo = {
+        selector: 'body',
+        tagName: 'body',
+        classes: [],
+        id: '',
+        text: '',
+        rect: { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight },
+        boundingRect: { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight, top: 0, right: window.innerWidth, bottom: window.innerHeight, left: 0 }
+      };
+    }
+
+    const state: any = {};
+    const feedback: FeedbackItem = {
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+      index: this.feedbackManager.getAll().length + 1,
+      comment,
+      timestamp: Date.now(),
+      url: this.config.url || window.location.href,
+      element: elementInfo,
+      state,
+      consoleLogs: [...this.consoleLogs],
+      networkRequests: [...this.networkRequests],
+      sessionRecording: [...this.rrwebEvents],
+      markerType: 'single'
+    } as any;
+
+    this.feedbackManager.add(feedback);
+    this.markerManager.addMarker(feedback);
+  }
+
   private async handleCopyFeedback(id: string) {
     const item = this.feedbackManager.getAll().find(f => f.id === id);
     if (!item) return;
@@ -516,6 +563,9 @@ export class Overlay {
       }
     };
     this.toolbar.onLayoutModeToggle = () => this.toggleLayoutMode();
+    this.toolbar.onAnimationToggle = () => {
+      this.animationInspector.toggle();
+    };
     this.toolbar.onCopy = () => this.copyFeedback();
     this.toolbar.onDownloadJson = () => this.downloadJson();
     this.toolbar.onGithubCreate = () => this.createGithubIssue();
@@ -979,10 +1029,10 @@ export class Overlay {
   deactivate() {
     this._isActive = false;
     this.removeEventListeners();
-    this.removePauseStyles();
     this.container.remove();
     this.isAreaSelectActive = false;
     this.toolbar.toggleAreaSelect(false);
+    this.animationInspector.destroy();
     
     if (this.stopRecording) {
       this.stopRecording();
@@ -992,37 +1042,11 @@ export class Overlay {
     if (this.config.onToggle) this.config.onToggle(false);
   }
 
-  private pauseStyleElement: HTMLStyleElement | null = null;
-
   togglePause() {
     this.isPaused = !this.isPaused;
     this.toolbar.setPaused(this.isPaused);
     if (this.isPaused) {
       this.hoverBox.hide();
-      this.injectPauseStyles();
-    } else {
-      this.removePauseStyles();
-    }
-  }
-
-  private injectPauseStyles() {
-    if (!this.pauseStyleElement) {
-      this.pauseStyleElement = document.createElement('style');
-      this.pauseStyleElement.id = 'pinmark-pause-animations';
-      this.pauseStyleElement.textContent = `
-        *, *::before, *::after {
-          animation-play-state: paused !important;
-          transition: none !important;
-        }
-      `;
-      document.head.appendChild(this.pauseStyleElement);
-    }
-  }
-
-  private removePauseStyles() {
-    if (this.pauseStyleElement) {
-      this.pauseStyleElement.remove();
-      this.pauseStyleElement = null;
     }
   }
 

@@ -108,7 +108,8 @@ const ICONS = {
   github: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>`,
   exit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
   send: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
-  layout: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="9" x2="9" y2="21"/></svg>`
+  layout: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="9" x2="9" y2="21"/></svg>`,
+  animation: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5 Q12 6 14.5 9.5 Q17 13 14.5 16.5 Q12 18 9.5 14.5 Q7 11 9.5 9.5Z"/></svg>`
 };
 
 export class Toolbar {
@@ -120,14 +121,17 @@ export class Toolbar {
   private areaSelectBtn: HTMLButtonElement | null = null;
   private multiSelectBtn: HTMLButtonElement | null = null;
   private layoutBtn: HTMLButtonElement | null = null;
+  private animationBtn: HTMLButtonElement | null = null;
   private isAreaSelectActive = false;
   private isMultiSelectActive = false;
+  private isAnimationActive = false;
 
   onPauseToggle?: () => void;
   onMarkersToggle?: () => void;
   onAreaSelectToggle?: () => void;
   onMultiSelectToggle?: () => void;
   onLayoutModeToggle?: () => void;
+  onAnimationToggle?: () => void;
   onCopy?: () => void;
   onDownloadJson?: () => void;
   onGithubCreate?: () => void;
@@ -315,6 +319,17 @@ export class Toolbar {
     toolbar.appendChild(clearBtn);
     toolbar.appendChild(settingsBtn);
     toolbar.appendChild(this.sendBtn);
+    toolbar.appendChild(divider2);
+
+    this.animationBtn = this.createButton('animation', 'Animation Inspector', 'animation') as HTMLButtonElement;
+    this.animationBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.isAnimationActive = !this.isAnimationActive;
+      this.animationBtn!.classList.toggle('active', this.isAnimationActive);
+      this.onAnimationToggle?.();
+    };
+    toolbar.appendChild(this.animationBtn);
+
     toolbar.appendChild(divider3);
     toolbar.appendChild(exitBtn);
 
@@ -324,6 +339,13 @@ export class Toolbar {
   setWebhookEnabled(enabled: boolean) {
     if (this.sendBtn) {
       this.sendBtn.style.display = enabled ? 'flex' : 'none';
+    }
+  }
+
+  setAnimationActive(active: boolean) {
+    this.isAnimationActive = active;
+    if (this.animationBtn) {
+      this.animationBtn.classList.toggle('active', active);
     }
   }
 
