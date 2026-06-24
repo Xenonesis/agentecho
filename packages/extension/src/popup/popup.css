@@ -430,3 +430,39 @@ body {
 }
 .dropdown-item:hover { background: rgba(255,255,255,0.06); color: #e8e8e8; }
 .dropdown-item.active { color: #e8e8e8; font-weight: 500; }
+
+/* ── Light Theme Overrides ─────────────────────────── */
+body.light { background: #f0f0f0; }
+body.light .card { background: #ffffff; color: #111; }
+body.light .brand-name { color: #111111; }
+body.light .brand-icon { color: #222222; }
+body.light .setting-label { color: #555555; }
+body.light .setting-value-text { color: #111111; }
+body.light .icon-btn { color: #888; }
+body.light .icon-btn:hover { color: #444; background: rgba(0,0,0,0.06); }
+body.light .divider { background: rgba(0,0,0,0.06); }
+body.light .panel-title { color: #333; }
+body.light .field-label { color: #666; }
+body.light .field-input { background: #fcfcfc; border-color: rgba(0,0,0,0.1); color: #111; }
+body.light .field-input:focus { border-color: rgba(0,0,0,0.3); }
+body.light .field-input::placeholder { color: #888; }
+body.light .action-btn { background: #f0f0f0; border-color: rgba(0,0,0,0.1); color: #222; }
+body.light .action-btn:hover { background: #e0e0e0; }
+body.light .nav-row:hover { background: rgba(0,0,0,0.03); }
+body.light .dropdown-menu { background: #fff; border-color: rgba(0,0,0,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+body.light .dropdown-item { color: #444; }
+body.light .dropdown-item:hover { background: rgba(0,0,0,0.05); color: #111; }
+body.light .dropdown-item.active { color: #111; }
+body.light .swatch-custom { background: #f8f8f8; border-color: #ddd; color: #666; }
+body.light .swatch-custom:hover { border-color: #aaa; color: #222; }
+body.light .swatch.selected { border-color: #aaa; box-shadow: 0 0 0 1.5px rgba(0,0,0,0.3); }
+body.light .toggle-track { background: #e0e0e0; }
+body.light .toggle-switch input:checked + .toggle-track { background: #aaa; }
+body.light .toggle-switch input:checked + .toggle-track .toggle-thumb { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transform: translateX(16px); }
+body.light .toggle-thumb { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+body.light .back-btn { color: #666; }
+body.light .back-btn:hover { color: #222; }
+body.light .advanced-panel .header { border-bottom-color: rgba(0,0,0,0.1); }
+body.light .version-tag { color: #888; }
+body.light .value-dots { color: #888; }
+body.light .value-dots:hover { color: #444; }

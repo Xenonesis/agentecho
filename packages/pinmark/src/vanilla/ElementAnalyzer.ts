@@ -21,6 +21,7 @@ export class ElementAnalyzer {
     const boundingRect = element.getBoundingClientRect();
     const computedStyles = this.extractComputedStyles(element);
     const accessibility = this.extractAccessibility(element);
+    const animations = this.extractAnimations(element);
 
     return {
       selector,
@@ -33,7 +34,47 @@ export class ElementAnalyzer {
       boundingRect,
       computedStyles,
       accessibility,
-    };
+      animations,
+    } as any;
+  }
+
+  private extractAnimations(element: HTMLElement): any[] {
+    const results: any[] = [];
+    const computed = window.getComputedStyle(element);
+    
+    // Check CSS Animations
+    const animNames = computed.animationName.split(',').map(s => s.trim()).filter(s => s && s !== 'none');
+    const animDurations = computed.animationDuration.split(',').map(s => s.trim());
+    const animTimings = computed.animationTimingFunction.split(',').map(s => s.trim());
+    
+    animNames.forEach((name, i) => {
+      const dur = animDurations[i] || animDurations[0] || '0s';
+      if (dur === '0s') return;
+      results.push({
+        type: 'css-animation',
+        name,
+        duration: dur,
+        timingFunction: animTimings[i] || animTimings[0] || 'ease',
+      });
+    });
+
+    // Check CSS Transitions
+    const transProps = computed.transitionProperty.split(',').map(s => s.trim()).filter(s => s && s !== 'none' && s !== 'all');
+    const transDurations = computed.transitionDuration.split(',').map(s => s.trim());
+    const transTimings = computed.transitionTimingFunction.split(',').map(s => s.trim());
+    
+    transProps.forEach((prop, i) => {
+      const dur = transDurations[i] || transDurations[0] || '0s';
+      if (dur === '0s') return;
+      results.push({
+        type: 'css-transition',
+        property: prop,
+        duration: dur,
+        timingFunction: transTimings[i] || transTimings[0] || 'ease',
+      });
+    });
+
+    return results;
   }
 
   private extractTextContent(element: HTMLElement): string | undefined {

@@ -6,7 +6,6 @@ import { FeedbackModal } from './FeedbackModal';
 import { ElementAnalyzer } from './ElementAnalyzer';
 import { FrameworkDetector } from './FrameworkDetector';
 import { MarkdownFormatter } from './MarkdownFormatter';
-import { AnimationInspector, AnimationInfo, RecordedStep } from './AnimationInspector';
 import { FeedbackManager } from '../core/FeedbackManager';
 import type { PinmarkSettings, PinmarkConfig } from '../core/types';
 import type { PinmarkAnnotation as FeedbackItem } from '@pinmark/core';
@@ -77,7 +76,9 @@ export class Overlay {
   private isModalOpen = false;
   private isAreaSelectActive = false;
   private isMultiSelectActive = false;
-  private animationInspector: AnimationInspector;
+  
+  private isFrozen = false;
+  private frozenStyleEl: HTMLStyleElement | null = null;
 
   // Text selection floating button
   private selectionBtn: HTMLElement | null = null;
@@ -122,9 +123,6 @@ export class Overlay {
     this.frameworkDetector = new FrameworkDetector();
     this.toolbar = new Toolbar(this.shadowRoot);
     this.feedbackModal = new FeedbackModal(this.shadowRoot);
-    this.animationInspector = new AnimationInspector(this.shadowRoot);
-    
-    this.animationInspector.onAnnotate = (data) => this.handleAnimationAnnotation(data);
 
     this.setupToolbarListeners();
     this.loadExistingMarkers();
@@ -182,9 +180,8 @@ export class Overlay {
       this.toggleLayoutMode();
     } else if (e.key.toLowerCase() === 'f') {
       e.preventDefault();
-      this.animationInspector.togglePause();
-      const isFrozen = this.animationInspector.getIsPaused();
-      this.showToast(isFrozen ? '❄️ Animations Frozen (Press F to resume)' : '▶️ Animations Resumed');
+      this.toggleFreeze();
+      this.showToast(this.isFrozen ? '❄️ Animations Frozen (Press F to resume)' : '▶️ Animations Resumed');
     } else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       this.clearAll();
@@ -472,48 +469,6 @@ export class Overlay {
     await this.reindexMarkers();
   }
 
-  private async handleAnimationAnnotation(data: { animationData: AnimationInfo[]; steps: RecordedStep[]; element?: HTMLElement }) {
-    let comment = '';
-    if (data.animationData.length > 0) {
-      comment = `**Animations Detected:**\n${data.animationData.map(a => `- ${a.type === 'css-animation' ? 'Animation' : 'Transition'} (\`${a.name || a.property}\`): ${a.duration} ${a.timingFunction} ${a.iterationCount}`).join('\n')}`;
-    } else if (data.steps.length > 0) {
-      comment = `**Interaction Flow:**\n${data.steps.map(s => `${s.index}. ${s.type.toUpperCase()} on \`${s.elementTag}\` ${s.elementText ? `("${s.elementText}")` : ''}`).join('\n')}`;
-    }
-    
-    let elementInfo: any;
-    if (data.element) {
-      elementInfo = this.elementAnalyzer.analyze(data.element);
-    } else {
-      elementInfo = {
-        selector: 'body',
-        tagName: 'body',
-        classes: [],
-        id: '',
-        text: '',
-        rect: { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight },
-        boundingRect: { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight, top: 0, right: window.innerWidth, bottom: window.innerHeight, left: 0 }
-      };
-    }
-
-    const state: any = {};
-    const feedback: FeedbackItem = {
-      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
-      index: this.feedbackManager.getAll().length + 1,
-      comment,
-      timestamp: Date.now(),
-      url: this.config.url || window.location.href,
-      element: elementInfo,
-      state,
-      consoleLogs: [...this.consoleLogs],
-      networkRequests: [...this.networkRequests],
-      sessionRecording: [...this.rrwebEvents],
-      markerType: 'single'
-    } as any;
-
-    this.feedbackManager.add(feedback);
-    this.markerManager.addMarker(feedback);
-  }
-
   private async handleCopyFeedback(id: string) {
     const item = this.feedbackManager.getAll().find(f => f.id === id);
     if (!item) return;
@@ -568,9 +523,6 @@ export class Overlay {
       }
     };
     this.toolbar.onLayoutModeToggle = () => this.toggleLayoutMode();
-    this.toolbar.onAnimationToggle = () => {
-      this.animationInspector.toggle();
-    };
     this.toolbar.onCopy = () => this.copyFeedback();
     this.toolbar.onDownloadJson = () => this.downloadJson();
     this.toolbar.onGithubCreate = () => this.createGithubIssue();
@@ -1037,7 +989,9 @@ export class Overlay {
     this.container.remove();
     this.isAreaSelectActive = false;
     this.toolbar.toggleAreaSelect(false);
-    this.animationInspector.destroy();
+    this.isFrozen = false;
+    this.frozenStyleEl?.remove();
+    this.frozenStyleEl = null;
     
     if (this.stopRecording) {
       this.stopRecording();
@@ -1052,6 +1006,27 @@ export class Overlay {
     this.toolbar.setPaused(this.isPaused);
     if (this.isPaused) {
       this.hoverBox.hide();
+    }
+  }
+
+  toggleFreeze() {
+    this.isFrozen = !this.isFrozen;
+    if (this.isFrozen) {
+      if (!this.frozenStyleEl) {
+        this.frozenStyleEl = document.createElement('style');
+        this.frozenStyleEl.id = 'pinmark-freeze-animations';
+      }
+      this.frozenStyleEl.textContent = `
+        *, *::before, *::after {
+          animation-play-state: paused !important;
+          transition-property: all !important;
+          transition-duration: 0s !important;
+          transition-delay: 99999s !important;
+        }
+      `;
+      document.head.appendChild(this.frozenStyleEl);
+    } else {
+      this.frozenStyleEl?.remove();
     }
   }
 

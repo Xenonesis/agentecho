@@ -37,12 +37,7 @@ async function applyTheme(theme: 'light' | 'dark' | 'auto') {
   } else {
     isDark = theme === 'dark';
   }
-  document.body.style.background = isDark ? 'transparent' : '#f0f0f0';
-  const cards = document.querySelectorAll('.card');
-  cards.forEach(c => {
-    (c as HTMLElement).style.background = isDark ? '#1a1a1a' : '#ffffff';
-    (c as HTMLElement).style.color = isDark ? '#e0e0e0' : '#111';
-  });
+  document.body.classList.toggle('light', !isDark);
 }
 
 // ── Update toggle button state ─────────────────────────

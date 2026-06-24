@@ -60,6 +60,18 @@ export class MarkdownFormatter {
       markdown += `- **Text:** "${item.element.textContent}"\n`;
     }
 
+    if ((item.element as any).animations?.length > 0) {
+      markdown += `\n### Animations & Transitions\n`;
+      (item.element as any).animations.forEach((anim: any) => {
+        if (anim.type === 'css-animation') {
+          markdown += `- **Animation**: \`${anim.name}\` (${anim.duration}, ${anim.timingFunction})\n`;
+        } else {
+          markdown += `- **Transition**: \`${anim.property}\` (${anim.duration}, ${anim.timingFunction})\n`;
+        }
+      });
+      markdown += '\n';
+    }
+
     if (item.element.selectionText) {
       markdown += `- **Selected Text:** "${item.element.selectionText}"\n`;
     }
