@@ -1,4 +1,4 @@
-import { Overlay, FeedbackManager } from '@pinmark/pinmark';
+import { Overlay, FeedbackManager, Launcher } from '@pinmark/pinmark';
 import { ChromeStorageAdapter } from './ChromeStorageAdapter';
 
 import { sendMessage } from '../shared/messaging';
@@ -46,6 +46,7 @@ injectLogger();
 
 let overlay: Overlay | null = null;
 let feedbackManager: FeedbackManager | null = null;
+let launcher: Launcher | null = null;
 let currentUrl: string = window.location.href;
 const storageAdapter = new ChromeStorageAdapter();
 
@@ -98,6 +99,7 @@ async function initializeOverlay() {
     feedbackManager = (overlay as any).feedbackManager;
     console.log('[Pinmark] Activating overlay...');
     overlay.activate();
+    if (launcher) launcher.setActive(true);
     console.log('[Pinmark] Overlay activated.');
   } catch (e) {
     console.error('[Pinmark] Error initializing overlay:', e);
@@ -113,6 +115,7 @@ function deactivateOverlay() {
     }
     overlay = null;
   }
+  if (launcher) launcher.setActive(false);
   feedbackManager = null;
 }
 
@@ -203,6 +206,22 @@ function setupUrlMonitoring() {
     handleUrlChange();
   });
 }
+
+function initializeLauncher() {
+  if (launcher) return;
+  launcher = new Launcher();
+  launcher.onClick = () => {
+    if (overlay) {
+      deactivateOverlay();
+      sendMessage({ type: 'SET_STATE', state: { isActive: false } }).catch(console.error);
+    } else {
+      initializeOverlay();
+      sendMessage({ type: 'SET_STATE', state: { isActive: true } }).catch(console.error);
+    }
+  };
+}
+
+initializeLauncher();
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   switch (message.type) {
