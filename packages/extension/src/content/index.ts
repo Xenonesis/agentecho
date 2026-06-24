@@ -182,7 +182,24 @@ function initializeLauncher() {
   };
 }
 
-initializeLauncher();
+// ── Startup: only show UI if extension is active for this tab ──
+async function startupInit() {
+  try {
+    const response = await sendMessage({ type: 'GET_STATE' }) as { isActive?: boolean } | null;
+    const isActive = response?.isActive ?? false;
+
+    if (isActive) {
+      // Extension was previously active on this tab — restore launcher + overlay
+      initializeLauncher();
+      await initializeOverlay();
+    }
+    // If not active, show nothing on the page.
+  } catch {
+    // Background not ready yet — show nothing. User can enable via popup.
+  }
+}
+
+startupInit();
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   switch (message.type) {
@@ -195,11 +212,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({ success: true });
       break;
     case 'ACTIVATE_OVERLAY':
+      initializeLauncher();
       initializeOverlay();
       sendResponse({ success: true });
       break;
     case 'DEACTIVATE_OVERLAY':
       deactivateOverlay();
+      // Also destroy launcher so nothing shows on page when disabled
+      if (launcher) {
+        try { launcher.destroy?.(); } catch { /* ignore */ }
+        launcher = null;
+      }
       sendResponse({ success: true });
       break;
     case 'TOGGLE_MARKERS':

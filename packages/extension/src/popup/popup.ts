@@ -6,9 +6,8 @@ let currentTabId: number | null = null;
 let isActive = false;
 
 // ── DOM refs ──────────────────────────────────────────
-const toggleBtn = document.getElementById('toggleBtn') as HTMLButtonElement;
-const activateLabel = toggleBtn?.querySelector('.activate-label') as HTMLElement;
-const activateShortcut = toggleBtn?.querySelector('.activate-shortcut') as HTMLElement;
+const toggleBtnCheckbox = document.getElementById('toggleBtnCheckbox') as HTMLInputElement;
+const statusIndicator = document.getElementById('statusIndicator') as HTMLElement;
 const statusMsg = document.getElementById('statusMsg') as HTMLElement;
 
 const outputDetailLabel = document.getElementById('outputDetailLabel') as HTMLElement;
@@ -49,13 +48,11 @@ async function applyTheme(theme: 'light' | 'dark' | 'auto') {
 // ── Update toggle button state ─────────────────────────
 function updateToggleButton() {
   if (isActive) {
-    toggleBtn.classList.add('active');
-    activateLabel.textContent = 'Deactivate';
-    if (activateShortcut) activateShortcut.textContent = 'on';
+    if (toggleBtnCheckbox) toggleBtnCheckbox.checked = true;
+    statusIndicator?.classList.add('active');
   } else {
-    toggleBtn.classList.remove('active');
-    activateLabel.textContent = 'Activate';
-    if (activateShortcut) activateShortcut.textContent = 'off';
+    if (toggleBtnCheckbox) toggleBtnCheckbox.checked = false;
+    statusIndicator?.classList.remove('active');
   }
 }
 
@@ -188,7 +185,10 @@ themeToggleBtn?.addEventListener('click', async () => {
 });
 
 // ── Activate / Deactivate ─────────────────────────────
-toggleBtn?.addEventListener('click', async () => {
+toggleBtnCheckbox?.addEventListener('change', async (e) => {
+  e.preventDefault();
+  // Revert UI instantly, we will update it after background confirms
+  toggleBtnCheckbox.checked = isActive;
   if (currentTabId === null) {
     showStatus('No active tab. Open a webpage first.');
     return;

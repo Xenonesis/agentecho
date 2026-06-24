@@ -39,12 +39,17 @@
     <!-- Status Message -->
     <div id="statusMsg" class="status-msg"></div>
 
-    <!-- Activate Button -->
-    <button id="toggleBtn" class="activate-btn">
-      <span class="activate-dot"></span>
-      <span class="activate-label">Activate</span>
-      <span class="activate-shortcut">off</span>
-    </button>
+    <!-- Enable Toggle -->
+    <div class="setting-row highlight-row">
+      <div class="setting-label-group">
+        <span class="activate-dot" id="statusIndicator"></span>
+        <span class="setting-label" id="activateLabelText" style="color: #e8e8e8; font-weight: 500;">Enable Pinmark</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleBtnCheckbox">
+        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      </label>
+    </div>
 
     <div class="divider"></div>
 
