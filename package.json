@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Visual feedback annotation tool for developers to place markers on DOM elements and generate AI-optimized Markdown",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "license": "Polyform-Noncommercial-1.0.0",
   "author": {
     "name": "Xenonesis",
@@ -18,9 +21,9 @@
     "url": "https://github.com/Xenonesis/Pinmark/issues"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "preview": "npm run preview --workspaces --if-present",
     "generate-icons": "node scripts/generate-icons.js"
   },
   "dependencies": {

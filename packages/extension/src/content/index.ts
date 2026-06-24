@@ -216,9 +216,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       break;
     case 'ACTIVATE_OVERLAY':
       initializeOverlay();
+      sendResponse({ success: true });
       break;
     case 'DEACTIVATE_OVERLAY':
       deactivateOverlay();
+      sendResponse({ success: true });
       break;
     case 'TOGGLE_MARKERS':
       overlay?.toggleMarkers();
