@@ -18,6 +18,22 @@ export class FrameworkDetector {
   }
 
   private detectReact(element: HTMLElement): ComponentInfo | undefined {
+    const nameAttr = element.getAttribute('data-pmk-react-component');
+    if (nameAttr && nameAttr !== 'Unknown') {
+      const hierarchyStr = element.getAttribute('data-pmk-react-hierarchy');
+      let hierarchy: string[] | undefined = undefined;
+      if (hierarchyStr) {
+        try {
+          hierarchy = JSON.parse(hierarchyStr);
+        } catch (e) {}
+      }
+      return {
+        framework: 'react',
+        name: nameAttr,
+        hierarchy
+      };
+    }
+
     const fiberKey = Object.keys(element).find((key) =>
       key.startsWith('__reactFiber$') || key.startsWith('__reactInternalInstance$')
     );
