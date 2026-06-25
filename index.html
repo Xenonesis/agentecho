@@ -309,9 +309,13 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .theme-toggle:hover { border-color: var(--ink); }
 .theme-toggle svg { width: 14px; height: 14px; }
 .theme-toggle .icon-sun,
-.theme-toggle .icon-moon { display: none; }
+.theme-toggle .icon-moon,
+.theme-toggle .icon-system { display: none; }
 [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
 [data-theme="light"] .theme-toggle .icon-moon { display: block; }
+[data-theme-mode="auto"] .theme-toggle .icon-system { display: block; }
+[data-theme-mode="auto"] .theme-toggle .icon-sun,
+[data-theme-mode="auto"] .theme-toggle .icon-moon { display: none; }
 /* 'auto' indicator dot */
 .theme-toggle::after {
   content: '';
@@ -326,29 +330,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .theme-toggle[data-mode="auto"]::after { display: block; }
 .theme-toggle[data-mode="auto"] { border-color: var(--marker); }
 
-.theme-sysbtn {
-  position: relative;
-  height: 32px;
-  padding: 0 10px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border: 1px solid var(--line);
-  background: var(--bg-elev);
-  color: var(--muted);
-  cursor: pointer;
-  border-radius: 4px;
-  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
-}
-.theme-sysbtn:hover { border-color: var(--ink); color: var(--ink); }
-.theme-sysbtn.active {
-  border-color: var(--marker);
-  color: var(--marker);
-  background: color-mix(in srgb, var(--marker) 8%, var(--bg-elev));
-}
+
 
 /* ---------- layout ---------- */
 .wrap { max-width: var(--max); margin: 0 auto; padding: 0 32px; }
@@ -2979,9 +2961,9 @@ footer a:hover { color: var(--ink); }
       </a>
       <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
-      <button class="theme-sysbtn" id="themeSysBtn" aria-label="Reset to system theme">Sys</button>
     </div>
   </div>
 </div>
@@ -4201,14 +4183,6 @@ footer a:hover { color: var(--ink); }
     });
 
     btn?.addEventListener('click', () => theme.cycle());
-
-    const sysBtn = document.getElementById('themeSysBtn');
-    if (sysBtn) {
-      const syncSysBtn = (mode) => sysBtn.classList.toggle('active', mode === 'auto');
-      syncSysBtn(theme.mode);
-      theme.subscribe((mode) => syncSysBtn(mode));
-      sysBtn.addEventListener('click', () => theme.set('auto'));
-    }
   })();
 
   // ---------- select <code> on click ----------
