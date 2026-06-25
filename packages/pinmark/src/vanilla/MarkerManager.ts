@@ -37,7 +37,8 @@ const MARKER_STYLES = (color: string) => `
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 255, 255, 1);
+    border: 2px solid rgba(0,0,0,0.1);
     transition: transform 0.15s ease-out, opacity 0.15s ease-out;
     pointer-events: all;
     user-select: none;
@@ -45,7 +46,7 @@ const MARKER_STYLES = (color: string) => `
 
   .pinmark-marker:hover {
     transform: scale(1.15);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 1);
   }
 
   .pinmark-marker.pinmark-marker-multi {

@@ -45,8 +45,9 @@ const TOOLBAR_STYLES = `
   }
 
   .pinmark-toolbar-btn.active {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.9);
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.4);
   }
 
   .pinmark-toolbar-btn svg {
