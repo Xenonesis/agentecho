@@ -3309,13 +3309,20 @@ footer a:hover { color: var(--ink); }
     <p class="lede">Click elements, capture state, copy AI-ready Markdown — all without leaving the page.</p>
 
     <div class="video-container">
-      <video autoplay muted loop playsinline poster="packages/extension/assets/logo.png" style="width: 100%; max-width: 800px; border-radius: 10px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: block; margin: 0 auto;">
-        <source src="packages/extension/assets/pinmark.mp4" type="video/mp4" />
-      </video>
+      <div class="video-wrapper">
+        <video id="demoVideo" controls muted playsinline poster="packages/extension/assets/logo.png">
+          <source src="packages/extension/assets/pinmark.mp4" type="video/mp4" />
+        </video>
+        <div class="play-overlay" id="playOverlay">
+          <div class="play-icon">
+            <svg viewBox="0 0 24 24"><polygon points="8,5 19,12 8,19"/></svg>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="note" style="margin-top: 24px; text-align: center;">
-      <span style="font-size: 13px; color: var(--muted);">Full demo — markers, clipboard copy, and forensic capture in real time.</span>
+    <div class="video-caption">
+      <span>Full demo — markers, clipboard copy, and forensic capture in real time.</span>
     </div>
   </div>
 </section>
@@ -5096,6 +5103,35 @@ footer a:hover { color: var(--ink); }
     });
   })();
 })();
+
+  // ---------- demo video controls ----------
+  (() => {
+    const video = document.getElementById('demoVideo');
+    const overlay = document.getElementById('playOverlay');
+    const status = document.querySelector('.vid-status');
+    if (!video || !overlay) return;
+    const fmt = (s) => {
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return m + ':' + String(sec).padStart(2, '0');
+    };
+    const sync = () => {
+      overlay.classList.toggle('playing', !video.paused);
+      if (status) status.textContent = (video.paused ? '▶' : '⏸') + ' ' + fmt(video.currentTime);
+    };
+    video.addEventListener('play', sync);
+    video.addEventListener('pause', sync);
+    video.addEventListener('timeupdate', () => {
+      if (status) status.textContent = (video.paused ? '▶' : '⏸') + ' ' + fmt(video.currentTime);
+    });
+    video.addEventListener('click', () => {
+      if (video.paused) video.play(); else video.pause();
+    });
+    overlay.addEventListener('click', () => {
+      video.play();
+    });
+    sync();
+  })();
 </script>
 </body>
 </html>
