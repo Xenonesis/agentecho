@@ -1452,6 +1452,25 @@ h3 {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
 }
+.video-container {
+  margin-top: 40px;
+  text-align: center;
+}
+.video-container video {
+  width: 100%;
+  max-width: 800px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  display: block;
+  margin: 0 auto;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.video-container video:hover {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  transform: scale(1.01);
+}
+
 .capture li code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
@@ -3271,6 +3290,25 @@ footer a:hover { color: var(--ink); }
         <h3>Copy the Markdown</h3>
         <p>Press <span class="kbd">C</span> or hit <strong>Copy</strong> in the toolbar. The full report is on your clipboard, formatted for AI.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEO DEMO -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// see it in action</span>
+    <h2>Watch Pinmark at work</h2>
+    <p class="lede">Click elements, capture state, copy AI-ready Markdown — all without leaving the page.</p>
+
+    <div class="video-container">
+      <video autoplay muted loop playsinline poster="packages/extension/assets/logo.png" style="width: 100%; max-width: 800px; border-radius: 10px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: block; margin: 0 auto;">
+        <source src="packages/extension/assets/pinmark.mp4" type="video/mp4" />
+      </video>
+    </div>
+
+    <div class="note" style="margin-top: 24px; text-align: center;">
+      <span style="font-size: 13px; color: var(--muted);">Full demo — markers, clipboard copy, and forensic capture in real time.</span>
     </div>
   </div>
 </section>
