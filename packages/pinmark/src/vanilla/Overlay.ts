@@ -195,6 +195,9 @@ export class Overlay {
     } else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       this.copyFeedback();
+    } else if (e.key.toLowerCase() === 'x' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      this.clearAll();
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
       const all = this.feedbackManager.getAll();
       if (all.length > 0) {
@@ -728,36 +731,88 @@ export class Overlay {
     if (this.layoutPanel) return;
 
     const COMPONENTS = [
-      { icon: '📄', name: 'Hero Section', kind: 'hero' },
+      // Navigation & Structure
       { icon: '🧭', name: 'Navbar', kind: 'navbar' },
-      { icon: '🃏', name: 'Card', kind: 'card' },
-      { icon: '🔘', name: 'Button', kind: 'button' },
-      { icon: '🖼️', name: 'Image', kind: 'image' },
-      { icon: '📝', name: 'Form', kind: 'form' },
-      { icon: '📋', name: 'Table', kind: 'table' },
-      { icon: '📊', name: 'Chart', kind: 'chart' },
-      { icon: '📦', name: 'Modal', kind: 'modal' },
-      { icon: '🗂️', name: 'Tabs', kind: 'tabs' },
-      { icon: '🔽', name: 'Dropdown', kind: 'dropdown' },
-      { icon: '🔔', name: 'Alert', kind: 'alert' },
-      { icon: '⭐', name: 'Badge', kind: 'badge' },
-      { icon: '📊', name: 'Stats', kind: 'stats' },
-      { icon: '🔗', name: 'Link', kind: 'link' },
       { icon: '☰', name: 'Sidebar', kind: 'sidebar' },
-      { icon: '🦶', name: 'Footer', kind: 'footer' },
-      { icon: '🔍', name: 'Search Bar', kind: 'search' },
-      { icon: '🖊️', name: 'Input', kind: 'input' },
       { icon: '📌', name: 'Breadcrumb', kind: 'breadcrumb' },
-      { icon: '📄', name: 'Text Block', kind: 'text' },
-      { icon: '🌐', name: 'Grid', kind: 'grid' },
-      { icon: '↔️', name: 'Divider', kind: 'divider' },
+      { icon: '🗂️', name: 'Tabs', kind: 'tabs' },
+      { icon: '🦶', name: 'Footer', kind: 'footer' },
+      { icon: '📍', name: 'Anchor Nav', kind: 'anchor-nav' },
+      { icon: '🔄', name: 'Pagination', kind: 'pagination' },
+
+      // Hero & Sections
+      { icon: '📄', name: 'Hero Section', kind: 'hero' },
       { icon: '🎯', name: 'CTA Section', kind: 'cta' },
       { icon: '💬', name: 'Testimonial', kind: 'testimonial' },
       { icon: '🏷️', name: 'Pricing Card', kind: 'pricing' },
+      { icon: '📊', name: 'Stats Section', kind: 'stats' },
+      { icon: '❓', name: 'FAQ Section', kind: 'faq' },
+      { icon: '👥', name: 'Team Section', kind: 'team' },
+      { icon: '📰', name: 'Newsletter', kind: 'newsletter' },
+      { icon: '🗺️', name: 'Contact Section', kind: 'contact' },
+      { icon: '🚀', name: 'Feature Section', kind: 'feature' },
+      { icon: '📱', name: 'App Download', kind: 'app-download' },
+      { icon: '🏷️', name: 'Brands Logos', kind: 'brands' },
+      { icon: '📅', name: 'Timeline', kind: 'timeline' },
+      { icon: '🪜', name: 'Stepper', kind: 'stepper' },
+      { icon: '📑', name: 'Steps Section', kind: 'steps' },
+
+      // Content Blocks
+      { icon: '🃏', name: 'Card', kind: 'card' },
+      { icon: '🌐', name: 'Grid', kind: 'grid' },
+      { icon: '📄', name: 'Text Block', kind: 'text' },
+      { icon: '↔️', name: 'Divider', kind: 'divider' },
+      { icon: '🖼️', name: 'Image', kind: 'image' },
       { icon: '📷', name: 'Gallery', kind: 'gallery' },
-      { icon: '🗺️', name: 'Map', kind: 'map' },
       { icon: '🎬', name: 'Video', kind: 'video' },
+      { icon: '🗺️', name: 'Map', kind: 'map' },
+      { icon: '📋', name: 'Table', kind: 'table' },
+      { icon: '📊', name: 'Chart', kind: 'chart' },
+      { icon: '📝', name: 'Code Block', kind: 'code-block' },
+      { icon: '📑', name: 'Card Grid', kind: 'card-grid' },
+      { icon: '📰', name: 'Blog Post', kind: 'blog-post' },
+      { icon: '🎠', name: 'Carousel', kind: 'carousel' },
+      { icon: '🪗', name: 'Accordion', kind: 'accordion' },
+      { icon: '📑', name: 'List', kind: 'list' },
+      { icon: '💬', name: 'Quote', kind: 'quote' },
+      { icon: '🔔', name: 'Notification', kind: 'notification' },
+
+      // Interactive Elements
+      { icon: '🔘', name: 'Button', kind: 'button' },
+      { icon: '🔗', name: 'Link', kind: 'link' },
+      { icon: '🖊️', name: 'Input', kind: 'input' },
+      { icon: '📝', name: 'Form', kind: 'form' },
+      { icon: '🔽', name: 'Dropdown', kind: 'dropdown' },
+      { icon: '🔀', name: 'Toggle Switch', kind: 'toggle' },
+      { icon: '📻', name: 'Radio Group', kind: 'radio' },
+      { icon: '☑️', name: 'Checkbox Group', kind: 'checkbox' },
+      { icon: '📎', name: 'File Upload', kind: 'file-upload' },
+      { icon: '🎨', name: 'Color Picker', kind: 'color-picker' },
+      { icon: '📅', name: 'Date Picker', kind: 'date-picker' },
+      { icon: '🔢', name: 'Number Input', kind: 'number-input' },
+      { icon: '🔍', name: 'Search Bar', kind: 'search' },
+      { icon: '🔎', name: 'Search Results', kind: 'search-results' },
+      { icon: '🏷️', name: 'Tag Input', kind: 'tag-input' },
+
+      // Feedback & Overlay
+      { icon: '📦', name: 'Modal', kind: 'modal' },
       { icon: '💡', name: 'Tooltip', kind: 'tooltip' },
+      { icon: '🔔', name: 'Alert', kind: 'alert' },
+      { icon: '⭐', name: 'Badge', kind: 'badge' },
+      { icon: '⏳', name: 'Progress Bar', kind: 'progress' },
+      { icon: '⏳', name: 'Skeleton Loader', kind: 'skeleton' },
+      { icon: '💬', name: 'Toast', kind: 'toast' },
+      { icon: '📋', name: 'Popover', kind: 'popover' },
+      { icon: '🪟', name: 'Drawer', kind: 'drawer' },
+
+      // Layout & Container
+      { icon: '👤', name: 'Avatar', kind: 'avatar' },
+      { icon: '👤', name: 'Avatar Group', kind: 'avatar-group' },
+      { icon: '🏷️', name: 'Chip', kind: 'chip' },
+      { icon: '📊', name: 'Stat Card', kind: 'stat-card' },
+      { icon: '🗑️', name: 'Empty State', kind: 'empty-state' },
+      { icon: '🔒', name: 'Login Form', kind: 'login' },
+      { icon: '📄', name: '404 Page', kind: '404' },
     ];
 
     const panel = document.createElement('div');
@@ -787,14 +842,38 @@ export class Overlay {
     `;
     panel.appendChild(header);
 
-    // Wireframe toggle
+    // ── Rearrange mode ──────────────────────────────────────
+    let isRearrangeMode = false;
+    let rearrangeTarget: HTMLElement | null = null;
+    let rearrangeGhost: HTMLElement | null = null;
+    let rearrangeStartX = 0;
+    let rearrangeStartY = 0;
+
+    const rearrangeBtn = document.createElement('button');
+    rearrangeBtn.style.cssText = 'width:100%;padding:7px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:rgba(255,255,255,0.7);font-size:12px;cursor:pointer;margin-bottom:6px;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;gap:6px;';
+    rearrangeBtn.innerHTML = '↕️ Rearrange Sections';
+    rearrangeBtn.title = 'Click any page element to drag it to a new position';
+    rearrangeBtn.onclick = () => {
+      isRearrangeMode = !isRearrangeMode;
+      rearrangeBtn.style.background = isRearrangeMode ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.05)';
+      rearrangeBtn.style.borderColor = isRearrangeMode ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.1)';
+      rearrangeBtn.style.color = isRearrangeMode ? '#4ade80' : 'rgba(255,255,255,0.7)';
+      if (isRearrangeMode) {
+        this.showToast('↕️ Rearrange mode ON — click any element to drag it');
+      } else {
+        this.showToast('Rearrange mode OFF');
+      }
+    };
+    panel.appendChild(rearrangeBtn);
+
+    // Wireframe toggle with opacity slider
     let wireframeActive = false;
     const wireframeOverlay = document.createElement('div');
-    wireframeOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);pointer-events:none;z-index:2147483640;display:none;';
+    wireframeOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);pointer-events:none;z-index:2147483640;display:none;transition:opacity 0.2s;';
     this.shadowRoot.appendChild(wireframeOverlay);
 
     const wireBtn = document.createElement('button');
-    wireBtn.style.cssText = 'width:100%;padding:7px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:rgba(255,255,255,0.7);font-size:12px;cursor:pointer;margin-bottom:10px;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;gap:6px;';
+    wireBtn.style.cssText = 'width:100%;padding:7px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:rgba(255,255,255,0.7);font-size:12px;cursor:pointer;margin-bottom:4px;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;gap:6px;';
     wireBtn.innerHTML = '🔲 Wireframe Mode';
     wireBtn.onclick = () => {
       wireframeActive = !wireframeActive;
@@ -802,8 +881,45 @@ export class Overlay {
       wireBtn.style.background = wireframeActive ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)';
       wireBtn.style.borderColor = wireframeActive ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.1)';
       wireBtn.style.color = wireframeActive ? '#60a5fa' : 'rgba(255,255,255,0.7)';
+      opacityRow.style.display = wireframeActive ? 'flex' : 'none';
     };
     panel.appendChild(wireBtn);
+
+    // Opacity slider row
+    const opacityRow = document.createElement('div');
+    opacityRow.style.cssText = 'display:none;align-items:center;gap:6px;padding:4px 6px 8px 6px;';
+    const opacityLabel = document.createElement('span');
+    opacityLabel.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.4);white-space:nowrap;';
+    opacityLabel.textContent = 'Opacity';
+    const opacitySlider = document.createElement('input');
+    opacitySlider.type = 'range';
+    opacitySlider.min = '0';
+    opacitySlider.max = '100';
+    opacitySlider.value = '70';
+    opacitySlider.style.cssText = 'flex:1;height:4px;accent-color:#3b82f6;cursor:pointer;';
+    const opacityVal = document.createElement('span');
+    opacityVal.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.4);min-width:28px;text-align:right;';
+    opacityVal.textContent = '70%';
+    opacitySlider.oninput = () => {
+      const pct = parseInt(opacitySlider.value, 10);
+      opacityVal.textContent = pct + '%';
+      wireframeOverlay.style.background = `rgba(0,0,0,${pct / 100})`;
+    };
+    opacityRow.appendChild(opacityLabel);
+    opacityRow.appendChild(opacitySlider);
+    opacityRow.appendChild(opacityVal);
+    panel.appendChild(opacityRow);
+
+    // Purpose field
+    const purposeRow = document.createElement('div');
+    purposeRow.style.cssText = 'margin-bottom:10px;';
+    const purposeInput = document.createElement('textarea');
+    purposeInput.placeholder = 'Purpose / intent (optional)';
+    purposeInput.style.cssText = 'width:100%;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;color:rgba(255,255,255,0.7);font-size:11px;font-family:inherit;resize:vertical;min-height:32px;max-height:60px;outline:none;box-sizing:border-box;transition:border-color 0.15s;';
+    purposeInput.onfocus = () => { purposeInput.style.borderColor = 'rgba(59,130,246,0.4)'; };
+    purposeInput.onblur = () => { purposeInput.style.borderColor = 'rgba(255,255,255,0.08)'; };
+    purposeRow.appendChild(purposeInput);
+    panel.appendChild(purposeRow);
 
     const gridLabel = document.createElement('div');
     gridLabel.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em;padding:0 2px;';
@@ -824,14 +940,14 @@ export class Overlay {
       item.onmouseleave = () => { item.style.background = 'rgba(255,255,255,0.04)'; item.style.borderColor = 'rgba(255,255,255,0.06)'; item.style.color = 'rgba(255,255,255,0.6)'; };
 
       item.ondragstart = (e) => {
-        e.dataTransfer?.setData('text/plain', JSON.stringify({ kind: comp.kind, name: comp.name }));
+        e.dataTransfer?.setData('text/plain', JSON.stringify({ kind: comp.kind, name: comp.name, purpose: purposeInput.value.trim() }));
       };
 
       item.onclick = () => {
         // Click to annotate at center viewport
         const x = window.innerWidth / 2;
         const y = window.innerHeight / 2;
-        this.addLayoutAnnotation(comp.kind, comp.name, x, y);
+        this.addLayoutAnnotation(comp.kind, comp.name, x, y, purposeInput.value.trim());
       };
 
       grid.appendChild(item);
@@ -845,15 +961,57 @@ export class Overlay {
       try {
         const data = JSON.parse(e.dataTransfer?.getData('text/plain') || '{}');
         if (data.kind) {
-          this.addLayoutAnnotation(data.kind, data.name, e.clientX, e.clientY);
+          this.addLayoutAnnotation(data.kind, data.name, e.clientX, e.clientY, data.purpose || '');
         }
       } catch {}
     };
     document.addEventListener('dragover', onDragOver);
     document.addEventListener('drop', onDrop);
+
+    // Rearrange mode event handlers
+    const onRearrangeMouseDown = (e: MouseEvent) => {
+      if (!isRearrangeMode || this.isModalOpen) return;
+      const target = e.target as HTMLElement;
+      if (this.shadowRoot.contains(target) || target === this.container) return;
+      rearrangeTarget = target;
+      rearrangeStartX = e.clientX;
+      rearrangeStartY = e.clientY;
+    };
+    const onRearrangeMouseMove = (e: MouseEvent) => {
+      if (!isRearrangeMode || !rearrangeTarget) return;
+      const dx = e.clientX - rearrangeStartX;
+      const dy = e.clientY - rearrangeStartY;
+      if (!rearrangeGhost && Math.abs(dx) + Math.abs(dy) > 5) {
+        // Create ghost overlay on the target
+        rearrangeGhost = document.createElement('div');
+        const rect = rearrangeTarget.getBoundingClientRect();
+        rearrangeGhost.style.cssText = `position:fixed;top:${rect.top}px;left:${rect.left}px;width:${rect.width}px;height:${rect.height}px;border:2px dashed #4ade80;background:rgba(34,197,94,0.1);pointer-events:none;z-index:2147483644;transition:all 0.1s;`;
+        document.body.appendChild(rearrangeGhost);
+      }
+      if (rearrangeGhost) {
+        rearrangeGhost.style.transform = `translate(${dx}px, ${dy}px)`;
+      }
+    };
+    const onRearrangeMouseUp = (e: MouseEvent) => {
+      if (!isRearrangeMode || !rearrangeTarget) return;
+      if (rearrangeGhost) {
+        rearrangeGhost.remove();
+        rearrangeGhost = null;
+        // Create a rearrange annotation
+        this.addRearrangeAnnotation(rearrangeTarget, e.clientX, e.clientY, purposeInput.value.trim());
+      }
+      rearrangeTarget = null;
+    };
+    document.addEventListener('mousedown', onRearrangeMouseDown);
+    document.addEventListener('mousemove', onRearrangeMouseMove);
+    document.addEventListener('mouseup', onRearrangeMouseUp);
+
     (panel as any)._cleanup = () => {
       document.removeEventListener('dragover', onDragOver);
       document.removeEventListener('drop', onDrop);
+      document.removeEventListener('mousedown', onRearrangeMouseDown);
+      document.removeEventListener('mousemove', onRearrangeMouseMove);
+      document.removeEventListener('mouseup', onRearrangeMouseUp);
       wireframeOverlay.remove();
     };
 
@@ -870,7 +1028,7 @@ export class Overlay {
     }
   }
 
-  private async addLayoutAnnotation(_kind: string, name: string, clientX: number, clientY: number) {
+  private async addLayoutAnnotation(_kind: string, name: string, clientX: number, clientY: number, purpose?: string) {
     const target = (document.elementFromPoint(clientX, clientY) as HTMLElement) || document.body;
 
     const placeholderRect = {
@@ -887,11 +1045,13 @@ export class Overlay {
     const elementInfo = this.elementAnalyzer.analyze(target);
     elementInfo.boundingRect = placeholderRect;
 
+    const purposeText = purpose ? ` — ${purpose}` : '';
+
     const state: any = {};
     const feedback: FeedbackItem = {
       id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
       index: this.feedbackManager.getAll().length + 1,
-      comment: `[Layout] Place ${name} here`,
+      comment: `[Layout] Place ${name} here${purposeText}`,
       timestamp: Date.now(),
       url: this.config.url || window.location.href,
       element: elementInfo,
@@ -900,7 +1060,47 @@ export class Overlay {
       networkRequests: [],
       sessionRecording: [],
       markerType: 'area',
-      areaRect: { x: placeholderRect.x, y: placeholderRect.y, width: placeholderRect.width, height: placeholderRect.height }
+      areaRect: { x: placeholderRect.x, y: placeholderRect.y, width: placeholderRect.width, height: placeholderRect.height },
+      kind: 'placement'
+    } as any;
+
+    this.feedbackManager.add(feedback);
+    this.markerManager.addMarker(feedback);
+  }
+
+  private async addRearrangeAnnotation(target: HTMLElement, clientX: number, clientY: number, purpose?: string) {
+    const elementInfo = this.elementAnalyzer.analyze(target);
+    const oldRect = target.getBoundingClientRect();
+
+    const placeholderRect = {
+      x: clientX,
+      y: clientY,
+      width: oldRect.width,
+      height: oldRect.height,
+      top: clientY,
+      right: clientX + oldRect.width,
+      bottom: clientY + oldRect.height,
+      left: clientX
+    };
+
+    const purposeText = purpose ? ` — ${purpose}` : '';
+    const smartName = target.textContent?.trim().substring(0, 40) || target.tagName.toLowerCase();
+
+    const state: any = {};
+    const feedback: FeedbackItem = {
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+      index: this.feedbackManager.getAll().length + 1,
+      comment: `[Layout] Rearrange "${smartName}" to this position${purposeText}`,
+      timestamp: Date.now(),
+      url: this.config.url || window.location.href,
+      element: elementInfo,
+      state,
+      consoleLogs: [],
+      networkRequests: [],
+      sessionRecording: [],
+      markerType: 'area',
+      areaRect: { x: placeholderRect.x, y: placeholderRect.y, width: placeholderRect.width, height: placeholderRect.height },
+      kind: 'rearrange'
     } as any;
 
     this.feedbackManager.add(feedback);

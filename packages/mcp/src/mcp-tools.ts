@@ -104,6 +104,28 @@ export function registerMcpTools(server: Server) {
             },
             required: ["annotationId", "reason"],
           },
+        },
+        {
+          name: "pinmark_ask_question",
+          description: "Ask the user a clarifying question about an annotation. The question appears as a reply in the annotation thread.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              annotationId: {
+                type: "string",
+                description: "The ID of the annotation to ask about.",
+              },
+              question: {
+                type: "string",
+                description: "The clarifying question to ask the user.",
+              },
+              agentName: {
+                type: "string",
+                description: "Your name/identifier (e.g. 'Claude Code').",
+              },
+            },
+            required: ["annotationId", "question", "agentName"],
+          },
         }
       ],
     };
@@ -214,6 +236,24 @@ export function registerMcpTools(server: Server) {
             {
               type: "text",
               text: `Annotation ${annotationId} dismissed. Reason: ${reason}`,
+            },
+          ],
+        };
+      }
+
+      case "pinmark_ask_question": {
+        const annotationId = String(request.params.arguments?.annotationId);
+        const question = String(request.params.arguments?.question);
+        const agentName = String(request.params.arguments?.agentName);
+        const annotation = await store.addReply(annotationId, agentName, question);
+        if (!annotation) {
+          throw new McpError(ErrorCode.InvalidParams, `Annotation ${annotationId} not found`);
+        }
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Question added to annotation ${annotationId}: "${question}" (by ${agentName})`,
             },
           ],
         };

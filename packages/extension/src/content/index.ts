@@ -60,6 +60,10 @@ async function initializeOverlay() {
     feedbackManager = (overlay as any).feedbackManager;
     console.log('[Pinmark] Activating overlay...');
     overlay.activate();
+    // Apply hide-until-restart: markers start hidden if setting is on
+    if (settings.hideUntilRestart) {
+      overlay.toggleMarkers();
+    }
     if (launcher) launcher.setActive(true);
     console.log('[Pinmark] Overlay activated.');
   } catch (e) {

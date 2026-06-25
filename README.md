@@ -21,20 +21,47 @@
 
 ### 🎨 Visual Annotation & Editing
 - **Area Drag Selection:** Draw boxes to select and markup entire UI sections, not just individual elements.
+- **Text Selection:** Select any text on the page to annotate typos, content issues, or copy changes — quoted text is included in output.
 - **Image Editor:** Built-in drawing tools (arrows, circles, freehand) directly over the selected area.
 - **Persistent markers** — Markers stay visible and positioned until cleared or the page reloads.
+
+### 📐 Layout Mode
+- **65+ Component Palette:** Drag and drop components (navbar, hero, card, form, modal, etc.) onto any page.
+- **Rearrange Sections:** Grab existing page elements and reposition them to sketch new layouts.
+- **Purpose Field:** Add intent/context descriptions to layout placements.
+- **Wireframe Mode with Opacity Slider:** Fade out the current page to sketch a layout from scratch.
+- **Agent Sync:** Layout annotations include `kind: "placement"` or `kind: "rearrange"` for structured agent output.
 
 ### 📡 State & Log Capture
 - **Network Request Interception:** Automatically captures XHR and Fetch requests when you annotate.
 - **Console Capture:** Grabs errors and warnings from the browser console to help AI debug instantly.
-- **Comprehensive metadata** — Captures tag name, classes, IDs, data attributes, text content, bounding rect, and component props (React/Angular).
+- **Comprehensive metadata** — Captures tag name, classes, IDs, data attributes, text content, bounding rect, and component props (React/Angular/Vue/Svelte).
+
+### ⌨️ Keyboard Shortcuts
+- `Ctrl+Shift+F` / `Cmd+Shift+F` — Toggle feedback mode
+- `L` — Layout mode
+- `P` — Pause/resume animations
+- `H` — Hide/show markers
+- `C` — Copy feedback
+- `X` — Clear all annotations
+- `F` — Freeze animations
+- `Esc` — Close/cancel
 
 ### 🤖 Local MCP Server Integration
 - **Auto-Sync:** Every annotation and drawing is automatically POSTed to your local MCP Server (`http://127.0.0.1:4747`).
 - **Cursor / Claude Integration:** Add the MCP server to Cursor or Claude Desktop, and AI agents can automatically fetch your exact drawings, screenshots, and console errors without copy-pasting!
+- **Two-Way Communication:** Agents can acknowledge, ask questions, resolve with summaries, or dismiss annotations with reasons.
+- **Threading:** Agents can ask clarifying questions via `pinmark_ask_question` tool.
 
 ### ☁️ GitHub Issue Creation
 - Create comprehensive GitHub issues containing screenshots, logs, and Markdown directly from the extension.
+
+### ⚙️ Settings
+- **Output Detail:** Choose from Compact, Standard, Detailed, or Forensic levels.
+- **Marker Color:** Customize with color picker or preset swatches.
+- **Hide Until Restart:** Start with markers hidden until the extension is reactivated.
+- **Block Interactions:** Prevent page clicks while annotating.
+- **Theme:** Light, dark, or auto mode.
 
 ---
 

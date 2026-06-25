@@ -15,6 +15,7 @@ const outputDetailSelect = document.getElementById('outputDetail') as HTMLSelect
 const outputDetailTrigger = document.getElementById('outputDetailTrigger') as HTMLButtonElement;
 
 const blockInteractionsToggle = document.getElementById('blockInteractions') as HTMLInputElement;
+const hideUntilRestartToggle = document.getElementById('hideUntilRestart') as HTMLInputElement;
 const reactComponentsToggle = document.getElementById('reactComponents') as HTMLInputElement;
 const clearAfterCopyCheckbox = document.getElementById('clearAfterCopy') as HTMLInputElement;
 const markerColorInput = document.getElementById('markerColor') as HTMLInputElement;
@@ -72,6 +73,7 @@ function loadSettings(settings: ExtensionSettings) {
     }
   }
   if (blockInteractionsToggle) blockInteractionsToggle.checked = settings.blockInteractions;
+  if (hideUntilRestartToggle) hideUntilRestartToggle.checked = settings.hideUntilRestart;
   if (clearAfterCopyCheckbox) clearAfterCopyCheckbox.checked = settings.clearAfterCopy;
 
   // Marker color
@@ -168,6 +170,10 @@ markerColorInput?.addEventListener('input', async (e) => {
 // ── Toggles ───────────────────────────────────────────
 blockInteractionsToggle?.addEventListener('change', async () => {
   await saveSetting('blockInteractions', blockInteractionsToggle.checked);
+});
+
+hideUntilRestartToggle?.addEventListener('change', async () => {
+  await saveSetting('hideUntilRestart', hideUntilRestartToggle.checked);
 });
 
 reactComponentsToggle?.addEventListener('change', async () => {

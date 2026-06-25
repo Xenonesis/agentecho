@@ -80,6 +80,36 @@ export class Store {
     return annotation;
   }
 
+  async addReply(annotationId: string, author: string, message: string): Promise<PinmarkAnnotation | undefined> {
+    const annotation = this.getAnnotation(annotationId);
+    if (!annotation) return undefined;
+
+    if (!annotation.replies) {
+      annotation.replies = [];
+    }
+
+    annotation.replies.push({
+      id: Math.random().toString(36).substring(2, 15),
+      author: 'agent',
+      message: `[${author}] ${message}`,
+      timestamp: Date.now()
+    });
+
+    // Update session updatedAt
+    for (const session of this.sessions.values()) {
+      if (session.annotations.some(a => a.id === annotationId)) {
+        session.updatedAt = Date.now();
+      }
+    }
+
+    try {
+      const { sseManager } = await import('./sse.js');
+      sseManager.notifyAnnotationUpdate(annotation);
+    } catch(e) {}
+
+    return annotation;
+  }
+
   getPendingAnnotations(sessionId?: string): PinmarkAnnotation[] {
     const pending: PinmarkAnnotation[] = [];
     const sessionsToCheck = sessionId 

@@ -60,5 +60,17 @@ export function createHttpServer() {
     res.json(annotation);
   });
 
+  app.post('/annotations/:id/reply', async (req: Request, res: Response) => {
+    const { agent, message } = req.body;
+    if (!agent || !message) {
+      return res.status(400).json({ error: 'agent and message are required' });
+    }
+    const annotation = await store.addReply(req.params.id, agent, message);
+    if (!annotation) {
+      return res.status(404).json({ error: 'Annotation not found' });
+    }
+    res.json(annotation);
+  });
+
   return app;
 }

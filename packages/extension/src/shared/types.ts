@@ -6,6 +6,7 @@ export interface ExtensionSettings {
   outputDetail: 'minimal' | 'standard' | 'comprehensive' | 'forensic';
   clearAfterCopy: boolean;
   blockInteractions: boolean;
+  hideUntilRestart: boolean;
   theme: 'light' | 'dark' | 'auto';
   mcpEndpoint: string;
   autoSync: boolean;
@@ -47,6 +48,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   outputDetail: 'standard',
   clearAfterCopy: false,
   blockInteractions: false,
+  hideUntilRestart: false,
   theme: 'auto',
   mcpEndpoint: 'http://localhost:4747',
   autoSync: true,

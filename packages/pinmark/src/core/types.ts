@@ -5,6 +5,7 @@ export interface PinmarkSettings {
   outputDetail: 'minimal' | 'standard' | 'comprehensive' | 'forensic';
   clearAfterCopy: boolean;
   blockInteractions: boolean;
+  hideUntilRestart: boolean;
   theme: 'light' | 'dark' | 'auto';
   mcpEndpoint?: string;
   autoSync?: boolean;

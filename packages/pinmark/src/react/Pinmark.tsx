@@ -22,6 +22,7 @@ export const Pinmark: React.FC<PinmarkProps> = ({
       outputDetail: 'standard',
       clearAfterCopy: false,
       blockInteractions: false,
+      hideUntilRestart: false,
       theme: 'auto',
       ...settings,
     };
