@@ -1462,19 +1462,40 @@ h3 {
   margin-top: 40px;
   text-align: center;
 }
-.video-container video {
+.video-container .video-wrapper {
   width: 100%;
   max-width: 800px;
+  margin: 0 auto;
   border-radius: 12px;
+  overflow: hidden;
   border: 1px solid var(--line);
   box-shadow: 0 8px 30px rgba(0,0,0,0.06);
-  display: block;
-  margin: 0 auto;
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  background: #000;
 }
-.video-container video:hover {
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-  transform: scale(1.01);
+.video-container video { width: 100%; display: block; }
+.video-caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.video-caption .vid-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0.3;
+}
+.video-caption .vid-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  min-width: 70px;
+  text-align: left;
 }
 
 .capture li code {
@@ -3310,19 +3331,16 @@ footer a:hover { color: var(--ink); }
 
     <div class="video-container">
       <div class="video-wrapper">
-        <video id="demoVideo" controls muted playsinline poster="packages/extension/assets/logo.png">
+        <video id="demoVideo" controls playsinline poster="https://xenonesis.github.io/Pinmark/assets/logo.png">
           <source src="packages/extension/assets/pinmark.mp4" type="video/mp4" />
         </video>
-        <div class="play-overlay" id="playOverlay">
-          <div class="play-icon">
-            <svg viewBox="0 0 24 24"><polygon points="8,5 19,12 8,19"/></svg>
-          </div>
-        </div>
       </div>
     </div>
 
     <div class="video-caption">
-      <span>Full demo — markers, clipboard copy, and forensic capture in real time.</span>
+      <span>Full demo — markers, clipboard copy, and forensic capture</span>
+      <span class="vid-dot"></span>
+      <span class="vid-status">▶ 0:00</span>
     </div>
   </div>
 </section>
@@ -5104,33 +5122,21 @@ footer a:hover { color: var(--ink); }
   })();
 })();
 
-  // ---------- demo video controls ----------
+  // ---------- demo video time display ----------
   (() => {
     const video = document.getElementById('demoVideo');
-    const overlay = document.getElementById('playOverlay');
     const status = document.querySelector('.vid-status');
-    if (!video || !overlay) return;
+    if (!video || !status) return;
     const fmt = (s) => {
       const m = Math.floor(s / 60);
       const sec = Math.floor(s % 60);
       return m + ':' + String(sec).padStart(2, '0');
     };
-    const sync = () => {
-      overlay.classList.toggle('playing', !video.paused);
-      if (status) status.textContent = (video.paused ? '▶' : '⏸') + ' ' + fmt(video.currentTime);
-    };
-    video.addEventListener('play', sync);
-    video.addEventListener('pause', sync);
-    video.addEventListener('timeupdate', () => {
-      if (status) status.textContent = (video.paused ? '▶' : '⏸') + ' ' + fmt(video.currentTime);
-    });
-    video.addEventListener('click', () => {
-      if (video.paused) video.play(); else video.pause();
-    });
-    overlay.addEventListener('click', () => {
-      video.play();
-    });
-    sync();
+    const update = () => { status.textContent = (video.paused ? '▶' : '⏸') + ' ' + fmt(video.currentTime); };
+    video.addEventListener('play', update);
+    video.addEventListener('pause', update);
+    video.addEventListener('timeupdate', update);
+    update();
   })();
 </script>
 </body>
