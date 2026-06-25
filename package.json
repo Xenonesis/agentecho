@@ -23,6 +23,7 @@
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
+    "build:firefox": "npm run build:firefox --workspaces --if-present",
     "preview": "npm run preview --workspaces --if-present",
     "generate-icons": "node scripts/generate-icons.js"
   },
