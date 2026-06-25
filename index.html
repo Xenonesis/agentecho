@@ -166,6 +166,7 @@ button:focus-visible, a:focus-visible { outline-offset: 3px; }
   pointer-events: none;
   background: var(--bg);
 }
+[data-theme="dark"] #starfield-wrapper { background: #0A0A0F; }
 
 #starfield {
   position: absolute;
@@ -178,7 +179,7 @@ button:focus-visible, a:focus-visible { outline-offset: 3px; }
 .starfield-glow {
   position: absolute;
   inset: 0;
-  opacity: 0.3;
+  opacity: 0.35;
   background: radial-gradient(ellipse at 30% 40%, rgba(56, 100, 180, 0.4) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(100, 60, 150, 0.3) 0%, transparent 50%);
 }
 [data-theme="light"] .starfield-glow {
@@ -189,7 +190,10 @@ button:focus-visible, a:focus-visible { outline-offset: 3px; }
 .starfield-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, transparent 40%, var(--bg) 100%);
+  background: radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(5,5,10,0.88) 100%);
+}
+[data-theme="light"] .starfield-vignette {
+  background: radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(250,250,249,0.92) 100%);
 }
 
 .topbar, .wrap, section, footer { position: relative; z-index: 1; }
@@ -4196,8 +4200,8 @@ footer a:hover { color: var(--ink); }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const PALETTE = {
-      light: { bg: '#FAFAF9', ink: '10,10,10', alphaMax: 0.55, alphaMin: 0.12 },
-      dark:  { bg: '#0A0A0A', ink: '245,245,244', alphaMax: 0.95, alphaMin: 0.35 },
+      light: { bg: '#FAFAF9', ink: '10,10,10', alphaMax: 0.60, alphaMin: 0.12 },
+      dark:  { bg: '#0A0A0F', ink: '235,240,250', alphaMax: 0.95, alphaMin: 0.30 },
     };
 
     const palette = () => root.getAttribute('data-theme') === 'dark' ? PALETTE.dark : PALETTE.light;
@@ -4234,7 +4238,7 @@ footer a:hover { color: var(--ink); }
 
     const drawStars = (speed, isStatic) => {
       const p = palette();
-      const focal = 320;
+      const focal = 380;
       for (const s of stars) {
         if (!isStatic) {
           s.pz = s.z;
@@ -4257,7 +4261,7 @@ footer a:hover { color: var(--ink); }
         const tw = (Math.sin(s.tw) + 1) / 2;
         const alpha = p.alphaMin + tw * (p.alphaMax - p.alphaMin);
 
-        ctx.strokeStyle = `rgba(${p.ink},${alpha * 0.15})`;
+        ctx.strokeStyle = `rgba(${p.ink},${alpha * 0.10})`;
         ctx.lineWidth = size;
         ctx.beginPath();
         ctx.moveTo(px, py);
@@ -4271,7 +4275,7 @@ footer a:hover { color: var(--ink); }
       }
     };
 
-    const baseSpeed = reduced ? 0.2 : 2.2;
+    const baseSpeed = reduced ? 0.3 : 3.5;
     const tick = () => {
       if (!running) return;
       const p = palette();
@@ -4730,6 +4734,7 @@ footer a:hover { color: var(--ink); }
       }
     });
   })();
+})();
 </script>
 </body>
 </html>
