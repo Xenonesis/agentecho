@@ -11,6 +11,8 @@
 
   Place visual markers on any webpage element, draw annotations, capture network logs, and sync instantly with your AI agents via Local MCP Server. Perfect for code reviews, bug reporting, and communicating with Claude, Cursor, or ChatGPT.
 
+  <video src="packages/extension/assets/pinmark.mp4" controls width="640" style="border-radius: 8px; margin-top: 16px;"></video>
+
 </div>
 
 ---
