@@ -3032,6 +3032,127 @@ footer a:hover { color: var(--ink); }
   </div>
 </section>
 
+<!-- PINMARK vs AGENTATION -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// vs agentation</span>
+    <h2>Built on Agentation's format, goes further</h2>
+    <p class="lede">Pinmark matches Agentation's proven output structure and adds forensic-level detail when you need it.</p>
+
+    <div class="compare" style="grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 40px;">
+      <div class="compare-col">
+        <h4 style="color: var(--ink); margin-bottom: 20px;">Agentation Output</h4>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7; color: var(--ink-mid); background: var(--bg); padding: 16px; border-radius: 6px; border: 1px solid var(--line);">
+          <div style="color: var(--accent); font-weight: 600;">## Page Feedback: /dashboard</div>
+          <div style="margin: 8px 0;">**Viewport:** 1512×738</div>
+          <div style="margin: 12px 0 8px; font-weight: 600; color: var(--ink);">### 1. button.submit-btn</div>
+          <div>**Location:** <code style="background: var(--bg-elev); padding: 1px 4px; border-radius: 3px;">.form &gt; button</code></div>
+          <div>**Source:** <code style="background: var(--bg-elev); padding: 1px 4px; border-radius: 3px;">src/Form.tsx:42</code></div>
+          <div>**Classes:** <code style="background: var(--bg-elev); padding: 1px 4px; border-radius: 3px;">submit-btn</code></div>
+          <div>**React:** <code style="background: var(--bg-elev); padding: 1px 4px; border-radius: 3px;">&lt;App&gt; &lt;Form&gt;</code></div>
+          <div style="margin-top: 8px;">**Feedback:** Make blue</div>
+        </div>
+        <ul style="margin-top: 16px; font-size: 13px; color: var(--ink-mid);">
+          <li style="margin-bottom: 6px;">4 detail levels</li>
+          <li style="margin-bottom: 6px;">Basic component detection</li>
+          <li>No console/network capture</li>
+        </ul>
+      </div>
+
+      <div class="compare-col good" style="background: var(--bg-elev); border-color: var(--accent);">
+        <h4 style="color: var(--accent); margin-bottom: 20px;">✓ Pinmark Output</h4>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7; color: var(--ink-mid); background: var(--bg); padding: 16px; border-radius: 6px; border: 1px solid var(--line);">
+          <div style="color: var(--accent); font-weight: 600;">## Page Feedback: /dashboard</div>
+          <div style="margin: 8px 0;">**Captured:** 2026-06-25 05:02:53</div>
+          <div style="margin: 8px 0;">**Viewport:** 1512×738</div>
+          <div style="margin: 8px 0;">**Items:** 1</div>
+          <div style="margin: 12px 0 8px; font-weight: 600; color: var(--ink);">### 1. "Submit" (button.submit-btn)</div>
+          <div>**Feedback:** Make this button blue</div>
+          <div>**Location:** <code style="background: var(--bg-elev); padding: 1px 4px; border-radius: 3px;">.form &gt; button</code></div>
+          <div>**Source:** <code style="background: var(--bg-elev); padding: 1px 4px; border-radius: 3px;">src/Form.tsx:42</code></div>
+          <div>**Classes:** <code style="background: var(--bg-elev); padding: 1px 4px; border-radius: 3px;">submit-btn primary</code></div>
+          <div>**ID:** <code style="background: var(--bg-elev); padding: 1px 4px; border-radius: 3px;">submit-btn</code></div>
+          <div>**Position:** 450, 320 (120×40)</div>
+          <div>**React:** <code style="background: var(--bg-elev); padding: 1px 4px; border-radius: 3px;">&lt;App&gt; &lt;Dashboard&gt; &lt;Form&gt;</code></div>
+        </div>
+        <ul style="margin-top: 16px; font-size: 13px; color: var(--ink-mid);">
+          <li style="margin-bottom: 6px;"><strong style="color: var(--accent);">5 detail levels</strong> (adds Forensic)</li>
+          <li style="margin-bottom: 6px;">Smart element naming</li>
+          <li style="margin-bottom: 6px;">Full React/Vue/Angular/Svelte detection</li>
+          <li style="margin-bottom: 6px;">Console logs + network requests</li>
+          <li style="margin-bottom: 6px;">Computed styles + bounding box</li>
+          <li>Browser state capture (cookies, localStorage)</li>
+        </ul>
+      </div>
+
+      <div class="compare-col">
+        <h4 style="color: var(--marker); margin-bottom: 20px;">✨ Forensic Mode</h4>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7; color: var(--ink-mid); background: var(--bg); padding: 16px; border-radius: 6px; border: 1px solid var(--line);">
+          <div style="color: var(--marker); font-weight: 600;">// Forensic adds:</div>
+          <div style="margin-top: 8px;">#### Computed Styles</div>
+          <div style="font-size: 11px; color: var(--muted);">display, color, font-size...</div>
+          <div style="margin-top: 8px;">#### Bounding Box</div>
+          <div style="font-size: 11px; color: var(--muted);">x, y, width, height, top, right, bottom, left</div>
+          <div style="margin-top: 8px;">#### Console Logs (2)</div>
+          <div style="font-size: 11px; color: var(--muted);">[LOG] Form submitted</div>
+          <div style="margin-top: 8px;">#### Network Requests</div>
+          <div style="font-size: 11px; color: var(--muted);">POST /api/submit → 200</div>
+          <div style="margin-top: 8px;">#### Browser State</div>
+          <div style="font-size: 11px; color: var(--muted);">cookies, localStorage keys</div>
+        </div>
+        <ul style="margin-top: 16px; font-size: 13px; color: var(--ink-mid);">
+          <li style="margin-bottom: 6px;">Agentation has nothing like this</li>
+          <li style="margin-bottom: 6px;">Perfect for debugging CSS/layout</li>
+          <li style="margin-bottom: 6px;">Full state for bug reproduction</li>
+          <li>Session replay via MCP</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top: 32px;">
+      <strong>Summary:</strong> Pinmark matches Agentation's selector-based Markdown output (the format AI agents love) and adds a <strong>Forensic mode</strong> that captures computed styles, console logs, network requests, and browser state — giving agents everything they need to debug without back-and-forth.
+    </div>
+  </div>
+</section>
+
+<!-- WRAP COMPARISON -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// live comparison</span>
+    <h2>Same annotation, different depth</h2>
+    <p class="lede">Here's how Agentation and Pinmark format the exact same <code>div.wrap</code> element. Pinmark adds smart naming, captured timestamp, and structured context.</p>
+
+    <div class="compare" style="grid-template-columns: repeat(2, 1fr); gap: 32px; margin-top: 40px;">
+      <div class="compare-col">
+        <h4 style="color: var(--ink);">Agentation — Standard</h4>
+        <pre style="font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--line); padding: 16px; border-radius: 8px; margin-top: 12px; overflow-x: auto; color: var(--ink-mid); line-height: 1.6;"><code>## Page Feedback: /dashboard
+**Viewport:** 1512×738
+
+### 1. div.wrap
+**Location:** `section:nth-child(18) > div.wrap`
+**Classes:** `wrap`
+**Feedback:** yha pr agentation ka v compare kro</code></pre>
+      </div>
+      <div class="compare-col good" style="background: var(--bg-elev); border-color: var(--accent);">
+        <h4 style="color: var(--accent);">✓ Pinmark — Standard</h4>
+        <pre style="font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--line); padding: 16px; border-radius: 8px; margin-top: 12px; overflow-x: auto; color: var(--ink-mid); line-height: 1.6;"><code>## Page Feedback: /dashboard
+**Captured:** 2026-06-25 05:03:25
+**Viewport:** 1512×738
+**Items:** 1
+
+### 1. "Wrap" (div.wrap)
+**Feedback:** yha pr agentation ka v compare kro
+**Location:** `section:nth-child(18) > div.wrap`
+**Classes:** `wrap`</code></pre>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top: 32px;">
+      <strong>Notice the difference:</strong> Pinmark automatically generates a human-readable name (<code>"Wrap"</code>) from the class name, adds a precise <strong>Captured</strong> timestamp, and includes an <strong>Items</strong> count. The Agentation version omits the timestamp entirely.
+    </div>
+  </div>
+</section>
+
 <!-- HOW IT WORKS -->
 <section>
   <div class="wrap">
@@ -3082,6 +3203,57 @@ footer a:hover { color: var(--ink); }
       <div class="compare-col">
         <h4 style="color: var(--ink);">🔲 Area Selection</h4>
         <p style="font-size: 14px; color: var(--muted); margin-top: 8px;">Drag to select a custom area when a single DOM element isn't enough to capture a broken layout.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OUTPUT COMPARISON -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">// output comparison</span>
+    <h2>Agentation vs Pinmark</h2>
+    <p class="lede">Same annotation. Agentation on the left, Pinmark on the right. Pinmark adds smart naming, source links, and forensic depth.</p>
+
+    <div class="compare" style="grid-template-columns: repeat(2, 1fr); gap: 32px; margin-top: 40px;">
+      <div class="compare-col">
+        <h4 style="color: var(--ink);">Agentation — Standard</h4>
+        <pre style="font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--line); padding: 16px; border-radius: 8px; margin-top: 12px; overflow-x: auto; color: var(--ink-mid); line-height: 1.6;"><code>## Page Feedback: /dashboard
+**Viewport:** 1512×738
+
+### 1. div.wrap
+**Location:** `section:nth-child(18) > div.wrap`
+**Classes:** `wrap`
+**Feedback:** yha pr agentation ka v compare kro</code></pre>
+      </div>
+      <div class="compare-col">
+        <h4 style="color: var(--accent);">Pinmark — Standard</h4>
+        <pre style="font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--line); padding: 16px; border-radius: 8px; margin-top: 12px; overflow-x: auto; color: var(--ink-mid); line-height: 1.6;"><code>## Page Feedback: /dashboard
+**Captured:** 2026-06-25 05:03:25
+**Viewport:** 1512×738
+**Items:** 1
+
+### 1. "Wrap" (div.wrap)
+**Feedback:** yha pr agentation ka v compare kro
+**Location:** `section:nth-child(18) > div.wrap`
+**Source:** `index.html:2850`
+**Classes:** `wrap`
+**React:** `<App>`
+**ID:** `wrap-container`</code></pre>
+      </div>
+    </div>
+
+    <div class="compare" style="grid-template-columns: 1fr; gap: 32px; margin-top: 24px;">
+      <div class="compare-col" style="background: var(--bg-elev); border: 1px solid var(--line); padding: 20px 24px;">
+        <h4 style="color: var(--accent); font-size: 14px;">✦ What Pinmark adds beyond Agentation</h4>
+        <ul style="margin-top: 10px; padding-left: 20px; line-height: 1.8; color: var(--ink-mid); font-size: 14px;">
+          <li><strong>Smart element naming</strong> — human-readable names like <code>"Wrap"</code> instead of raw selectors only</li>
+          <li><strong>Explicit ID disclosure</strong> — always shown when present</li>
+          <li><strong>Forensic detail level</strong> — computed styles, console logs, network requests, browser state</li>
+          <li><strong>Component props + accessibility</strong> in detailed/forensic modes</li>
+          <li><strong>Screenshot capture</strong> — collapsible element screenshot embedded in markdown</li>
+          <li><strong>Area selection</strong> — drag to annotate regions, not just single elements</li>
+        </ul>
       </div>
     </div>
   </div>
